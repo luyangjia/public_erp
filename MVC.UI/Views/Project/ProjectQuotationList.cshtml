@@ -1,0 +1,527 @@
+﻿@{
+    ViewBag.Title = "人员管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb_QuotatonList">
+        <div id="divtree" data-options="region:'west',split:true" v-bind:title="title" style="padding: 1px; width: 300px">
+            <!-------------------------------详细信息展示表格1----------------------------------->
+
+            <ul class="easyui-tree" data-options="url:'/Base/GetCombox?SysId=1&type=SysList&first=node',
+                    method:'post',animate:true,lines:true,
+                    onClick: ckicktree
+                    "></ul>
+
+            <!-------------------------------详细信息展示表格----------------------------------->
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+
+            <div id="divcenter" class="easyui-tabs" fit="true" style="width:100%;height:250px">
+                <div v-bind:title="title1" fit="true" style="padding:1px">
+                    <!-------------------------------详细信息展示表格----------------------------------->
+                    <table id="QuotatonList_dgrid" class="easyui-datagrid" fit="true" data-options="
+               url: '/DB/CostSearch',
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:100,
+               toolbar:'#QuotatonList_toolbar1',
+               pageList:pageList,
+               remoteSort:true,
+               sortName:'CategoryId',
+               sortOrder:'asc',
+               singleSelect:false,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post',
+               collapsible:true,
+               onClickCell: onClickCell,
+               onEndEdit: onEndEdit
+               ">
+                        <thead>
+                            <tr>
+                                <th data-options="field:'ck',checkbox:true"></th>
+                                <th data-options=" field:'CategoryLoopName',width:100,sortable:false">{{Category}}</th>
+                                <th data-options=" field:'Description',width:120,sortable:true,editor:{type:'textbox',options:{required:true,validType:'length[1,2000]'}} ">{{Description}}</th>
+                                <th data-options=" field:'Uom',width:80,fixed:true,sortable:true,
+                                                    formatter:function(value,row){
+                            return row.Uom;
+                        },
+                        editor:{
+                            type:'combobox',
+                            options:{
+                                valueField:'id',
+                                textField:'text',
+                                method:'get',
+                                url:'/Base/GetCombox?type=SysList&SysId=11',
+                                required:true
+                            }
+                        } ">{{UOM}}</th>
+                                <th data-options=" field:'Cost',width:60,fixed:true,sortable:true">{{Cost}}</th>
+                                <th data-options=" field:'Price',width:60,fixed:true,sortable:true,editor:{type:'numberbox',options:{required:true,validType:'length[1,10]',precision:2}} ">{{Price}}</th>
+                                <th data-options=" field:'Qty',width:60,fixed:true,sortable:true,editor:{type:'numberbox',options:{required:true,validType:'length[1,10]',precision:1}} ">{{Qty}}</th>
+                                <th data-options=" field:'CostMarkup',width:60,fixed:true,sortable:true">{{CostMarkup}}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <!-------------------------------详细信息展示表格----------------------------------->
+                </div>
+                <div v-bind:title="title2" style="padding:1px">
+                    <!-------------------------------详细信息展示表格-222222222---------------------------------->
+                    <table id="QuotatonList_dgrid2" class="easyui-datagrid" fit="true">
+                        <thead>
+                            <tr>
+                                <th data-options="field:'ck',checkbox:true"></th>
+                                <th data-options=" field:'Category',width:100,sortable:false">{{Category}}</th>
+                                <th data-options=" field:'Description',width:150,sortable:true,editor:{type:'textbox',options:{required:true,validType:'length[1,2000]'}} ">{{Description}}</th>
+                                <th data-options=" field:'Uom',width:80,fixed:true,sortable:true,
+                                                    formatter:function(value,row){
+                            return row.Uom;
+                        },
+                        editor:{
+                            type:'combobox',
+                            options:{
+                                valueField:'id',
+                                textField:'text',
+                                method:'get',
+                                url:'/Base/GetCombox?type=SysList&SysId=11',
+                                required:true
+                            }
+                        } ">{{UOM}}</th>
+                                <th data-options=" field:'Cost',width:60,fixed:true,sortable:true">{{Cost}}</th>
+                                <th data-options=" field:'Price',width:60,fixed:true,sortable:true,editor:{type:'numberbox',options:{required:true,validType:'length[1,10]',precision:2}} ">{{Price}}</th>
+                                <th data-options=" field:'Qty',width:60,fixed:true,sortable:true,editor:{type:'numberbox',options:{required:true,validType:'length[1,10]',precision:1}} ">{{Qty}}</th>
+                                <th data-options=" field:'CostMarkup',width:60,fixed:true,sortable:true">{{CostMarkup}}</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <!-------------------------------详细信息展示表格----------------------------------->
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="QuotatonList_toolbar1" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="Reload('#QuotatonList_dgrid');">{{Reload}}</a>
+         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="SaveData1();">{{Save}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="RejectData1();">{{Reject}}</a> 
+
+     </div>
+    <div id="QuotatonList_toolbar2" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="Reload('#QuotatonList_dgrid2');">{{Reload}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="UpdateData2();">{{Update}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="RejectData2();">{{Reject}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeleteData2();">{{Delete}}</a>
+    </div>
+    <script>
+        var agreeId=@ViewBag.agreeId;
+        var projectId=@ViewBag.projectId; 
+        var vm_QuotatonListgridhead = new Vue({
+            el: '#QuotatonList_dgrid',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                title: $setLang("Cost DB", "价格数据"),
+                Operation: $setLang("Operation", "操作"),
+                CategoryLoopName: $setLang("Category", "分类"),
+                SubCategory: $setLang("Sub-Category", "子分类"),
+                Category: $setLang("Category", "分类"),
+                Description: $setLang("Description", "描述"),
+                Supplier: $setLang("Supplier", "供应商"),
+                Group: $setLang("Group", "分类"),
+                Level: $setLang("Level", "层次"),
+                CostMarkup: $setLang("Cost Markup(%)", "盈利(%)"),
+                YN: $setLang("Y/N", "状态"),
+                UOM: $setLang("UOM", "单位"),
+                Cost: $setLang("Cost", "成本"),
+                Price: $setLang("Price", "单价"),
+                Qty: $setLang("Qty", "数量"),
+                Remark: $setLang("Remark", "备注"),
+            }
+        })
+        var vm_QuotatonListgridhead2 = new Vue({
+            el: '#QuotatonList_dgrid2',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                title: $setLang("Cost DB", "价格数据"),
+                Operation: $setLang("Operation", "操作"),
+                CategoryLoopName: $setLang("Category", "分类"),
+                SubCategory: $setLang("Sub-Category", "子分类"),
+                Category: $setLang("Category", "分类"),
+                Description: $setLang("Description", "描述"),
+                Supplier: $setLang("Supplier", "供应商"),
+                Group: $setLang("Group", "分类"),
+                Level: $setLang("Level", "层次"),
+                CostMarkup: $setLang("Cost Markup(%)", "盈利(%)"),
+                YN: $setLang("Y/N", "状态"),
+                UOM: $setLang("UOM", "单位"),
+                Cost: $setLang("Cost", "成本"),
+                Price: $setLang("Price", "单价"),
+                Qty: $setLang("Qty", "数量"),
+                Remark: $setLang("Remark", "备注"),
+            }
+        })
+        var vm_divcenter = new Vue({
+            el: '#divcenter',
+            data: {
+                title1: $setLang("Cost DB", "价格数据"),
+                title2: $setLang("Quotation", "已选协议"),
+            }
+        })
+        var vm_divtree = new Vue({
+            el: '#divtree',
+            data: {
+                title: $setLang("Category", "分类"),
+            }
+        })
+        
+        //toolbar按钮
+        //toolbar按钮
+        var vm_QuotatonListtoolbar1 = new Vue({
+            el: '#QuotatonList_toolbar1',
+            data: {
+                Save: $setLang("Save", "保存"),
+                Reject: $setLang("Reject", "撤销"),
+                Reload: $setLang("Reload", "刷新"),
+            }
+        })
+        var vm_QuotatonListtoolbar2 = new Vue({
+            el: '#QuotatonList_toolbar2',
+            data: {
+                Update: $setLang("Update", "修改"),
+                Save: $setLang("Save", "保存"),
+                Reject: $setLang("Reject", "撤销"),
+                Delete: $lang("Delete"),
+                Reload: $setLang("Reload", "刷新"),
+            }
+        })
+
+        //$("#Plan_dgrid").datagrid({
+        //    url: '/Project/ProjectPlanSearch',
+        //         queryParams: {
+        //             'projectId': projectId,
+        //         },
+        // });
+         //-------------------------------------------------------------------------
+        ////加载TAB2的数据
+        $('#QuotatonList_dgrid2').datagrid({
+            url: '/Project/ProjectQuotationListSearch',
+            rownumbers:true,
+            pagination:true,
+            pagenumber:1,
+            pageSize:100,
+            toolbar:'#QuotatonList_toolbar2',
+            pageList:pageList,
+            remoteSort:true,
+            sortName:'CategoryId',
+            sortOrder:'asc',
+            singleSelect:false,
+            nowrap:false,
+            loadMsg: loadMsg,
+            striped : true,
+            fitColumns:true,
+            method:'post',
+            collapsible:true,
+            onClickCell: onClickCell2,
+            onEndEdit: onEndEdit2,
+            queryParams: {
+                'ProjectId': projectId,
+                'AgreeId': agreeId,
+                         },
+        });
+
+
+        //点击树节点************************************
+        var tabsIndex=0;
+        function ckicktree(node)
+        {
+            if(tabsIndex==0)
+            {
+                $('#QuotatonList_dgrid').datagrid('load', {
+                    CategoryId: node.id,
+
+                });
+            }
+            else if(tabsIndex==1)
+            {
+                $('#QuotatonList_dgrid2').datagrid('load', {
+                    AgreeId: agreeId,
+                    CategoryId: node.id,
+                });
+            }
+
+        }
+
+        $('#divcenter').tabs({
+            onSelect:function(title,index){
+                tabsIndex=index;
+            }
+        });
+
+        //第一个grid ************************************
+        var editIndex = undefined;
+        function endEditing(){
+            if (editIndex == undefined){return true}
+            if ($('#QuotatonList_dgrid').datagrid('validateRow', editIndex)){
+                $('#QuotatonList_dgrid').datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        function onClickCell(index, field){
+            if (editIndex != index){
+                if (endEditing()){
+                    $('#QuotatonList_dgrid').datagrid('selectRow', index)
+                            .datagrid('beginEdit', index);
+                    var ed = $('#QuotatonList_dgrid').datagrid('getEditor', {index:index,field:field});
+                    if (ed){
+                        ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+                    }
+                    editIndex = index;
+                } else {
+                    setTimeout(function(){
+                        $('#QuotatonList_dgrid').datagrid('selectRow', editIndex);
+                    },0);
+                }
+            }
+        }
+        function onEndEdit(index, row){
+            var ed = $(this).datagrid('getEditor', {
+                index: index,
+                field: 'Uom'
+            });
+            row.Uom = $(ed.target).combobox('getText');
+        }
+
+        //第2个grid ************************************
+        var editIndex2 = undefined;
+        function endEditing2(){
+            if (editIndex2 == undefined){return true}
+            if ($('#QuotatonList_dgrid2').datagrid('validateRow', editIndex)){
+                $('#QuotatonList_dgrid2').datagrid('endEdit', editIndex);
+                editIndex2 = undefined;
+                return true;
+            } else {
+                return false;
+            }
+        }
+        function onClickCell2(index, field){
+            if (editIndex2 != index){
+                if (endEditing2()){
+                    $('#QuotatonList_dgrid2').datagrid('selectRow', index)
+                            .datagrid('beginEdit', index);
+                    var ed = $('#QuotatonList_dgrid2').datagrid('getEditor', {index:index,field:field});
+                    if (ed){
+                        ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+                    }
+                    editIndex2 = index;
+                } else {
+                    setTimeout(function(){
+                        $('#QuotatonList_dgrid2').datagrid('selectRow', editIndex);
+                    },0);
+                }
+            }
+        }
+        function onEndEdit2(index, row){
+            var ed = $(this).datagrid('getEditor', {
+                index: index,
+                field: 'Uom'
+            });
+            row.Uom = $(ed.target).combobox('getText');
+        }
+        //各种按钮 ************************************
+        //撤销按钮
+        function RejectData1(){
+            $('#QuotatonList_dgrid').datagrid('rejectChanges');
+            editIndex = undefined;
+        }
+        function RejectData2(){
+            $('#QuotatonList_dgrid2').datagrid('rejectChanges');
+            editIndex2 = undefined;
+        }
+         
+        
+        //增加新数据
+        var url_QuotationList="/Project/ProjectQuotationListAction";
+        function SaveData1(){
+            if (endEditing()){
+                $('#QuotatonList_dgrid').datagrid('acceptChanges');
+            }
+            var checkData= $("#QuotatonList_dgrid").datagrid("getSelections"); 
+            if (checkData.length >= 1) {
+                //创建传递的参数
+                var postdataList = [];  
+                $.each(checkData,function(index,val){
+                    var data = {
+                        Action:"Add",
+                        AgreeId: agreeId,
+                        ProjectId: projectId,
+                        CostId:checkData[index].Id, 
+                        CategoryId:checkData[index].CategoryId,
+                        Category:checkData[index].CategoryName, 
+                        Description:checkData[index].Description, 
+                        Uom:checkData[index].Uom, 
+                        Cost:checkData[index].Cost, 
+                        Qty:checkData[index].Qty, 
+                        Profit:checkData[index].Profit, 
+                        Price:checkData[index].Price, 
+                    };
+                    postdataList.push(data);  
+                });
+               // console.log(postdataList);
+                var postdata={
+                    Action:"Add",
+                    dataList:postdataList,
+                };
+               // console.log(postdata);
+                //发送异步请求到后台保存数据
+                $.post(url_QuotationList,
+                    postdata,
+                    function (data, status) {
+                        if (status == "success" && data === "OK") {
+                            msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info'); 
+                            $('#QuotatonList_dgrid').datagrid('rejectChanges');
+                            $("#QuotatonList_dgrid2").datagrid("reload");
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                        }
+                    });
+            }
+            else
+            {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+
+        }
+        //修改协议
+        function UpdateData2(){
+            if (endEditing2()){
+                $('#QuotatonList_dgrid2').datagrid('acceptChanges');
+            } 
+            var checkData= $("#QuotatonList_dgrid2").datagrid("getSelections"); 
+            if (checkData.length >= 1) {
+                //创建传递的参数
+                var postdataList = [];  
+                $.each(checkData,function(index,val){
+                    var data = {
+                        Action:"Edit",
+                        Id:checkData[index].Id, 
+                        AgreeId: checkData[index].AgreeId, 
+                        ProjectId: checkData[index].ProjectId,
+                        CostId:checkData[index].CostId, 
+                        CategoryId:checkData[index].CategoryId,
+                        Category:checkData[index].Category, 
+                        Description:checkData[index].Description, 
+                        Uom:checkData[index].Uom, 
+                        Cost:checkData[index].Cost, 
+                        Qty:checkData[index].Qty, 
+                        Profit:checkData[index].Profit, 
+                        Price:checkData[index].Price, 
+                    };
+                    postdataList.push(data);  
+                });
+                // console.log(postdataList);
+                var postdata={
+                    Action:"Edit",
+                    dataList:postdataList,
+                };
+                // console.log(postdata);
+                //发送异步请求到后台保存数据
+                $.post(url_QuotationList,
+                    postdata,
+                    function (data, status) {
+                        if (status == "success" && data === "OK") {
+                            msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info'); 
+                            $('#QuotatonList_dgrid2').datagrid('rejectChanges');
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                        }
+                    });
+            }
+            else
+            {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+
+
+
+
+
+
+
+        }
+        //删除协议
+        function DeleteData2(){
+            if (endEditing2()){
+                $('#QuotatonList_dgrid2').datagrid('acceptChanges');
+            } 
+            var checkData= $("#QuotatonList_dgrid2").datagrid("getSelections"); 
+            if (checkData.length >= 1) {
+                //创建传递的参数
+                var postdataList = [];  
+                $.each(checkData,function(index,val){
+                    var data = {
+                        Action:"Delete",
+                        Id:checkData[index].Id
+                    };
+                    postdataList.push(data);  
+                });
+                // console.log(postdataList);
+                var postdata={
+                    Action:"Delete",
+                    dataList:postdataList,
+                };
+                // console.log(postdata);
+                //发送异步请求到后台保存数据
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                $.post(url_QuotationList,
+                    postdata,
+                    function (data, status) {
+                        if (status == "success" && data === "OK") {
+                            msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');  
+                            $("#QuotatonList_dgrid2").datagrid("reload");
+                            $("#QuotatonList_dgrid2").datagrid("clearSelections");
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                        }
+                    });
+
+
+
+                        }
+                    });
+
+            }
+            else
+            {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            } 
+
+        }
+       
+
+
+    </script>
+
+
+
+</body>
+
+
+
+
+
+

@@ -1,0 +1,346 @@
+﻿@{
+    ViewBag.Title = "角色管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'west',split:true" style="padding: 1px; width: 230px">
+            <!-------------------------------详细信息展示表格1----------------------------------->
+            <table id="dgrid1" class="easyui-datagrid" fit="true" v-bind:title="title1" idfield="Id" data-options="
+                url: '/System/GetRole',
+                rownumbers:true,
+                toolbar:'#toolbar',
+                pagination:false,
+                pagenumber:1,
+                remotesort:false,
+                multisort:true,
+                nowrap:false,
+                loadMsg: loadMsg,
+                striped : true,
+                method:'post',
+                onClickRow: function (index, row) {
+                      doFilter(row.Id);
+
+                   }, 
+              onRowContextMenu: onRowContextMenu
+                   ">
+                <thead>
+                    <tr>
+                        <th data-options=" field:'Name',width:130">{{RoleName}}</th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid2" class="easyui-treegrid" fit="true" v-bind:title="title2" idfield="Id" title="" data-options="
+               url: '/System/MenuSearch',
+               rownumbers:true,
+               treeField: 'Name',
+               loadMsg: loadMsg,
+               singleSelect : true,
+               checkOnSelect : false,
+               selectOnCheck : false,
+               toolbar:'#toolbar2',
+               striped : true,
+               method:'post'
+               ">
+                <thead>
+                    <tr>
+                        <th data-options="field:'ck1',formatter: Checkformater1">{{Admin}}</th>
+                        <th data-options="field:'ck2',formatter: Checkformater2">{{Ordinary}}</th>
+                        <th data-options=" field:'Name',width:250">{{SysListName}}</th>
+
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Add}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="EditData();">{{Edit}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeleteData();">{{Delete}}</a>
+    </div>
+    <div id="toolbar2" style="height:auto">
+       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <input id="PDALL1" type="checkbox" name="PDALL1" onclick="checkALL1();" />{{Admin}}
+        &nbsp;&nbsp; <input id="PDALL2" type="checkbox" name="PDALL2" onclick="checkALL2();">{{Ordinary}}
+    </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+        <div data-options="iconCls:'icon-add'" onclick="AddData();">{{Add}}</div>
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:620px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable"> 
+                        <tr>
+                            <td class="firstTd"><label for="txt_Name">{{RoleName}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Name" name="txt_Name" data-options="required:true,validType:'length[1,50]' " style="width:230px;" /></td>
+                        </tr>
+                       
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+
+</body>
+
+@section body_after{
+    <script>
+        //所有VM多在这里
+        //grid1表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                title1: $setLang("Role", "角色"),
+                title2: $setLang("Access", "权限"),
+                RoleName: $setLang("Role Name", "角色名称"),
+                SysListName: $setLang("Name", "名称"),
+                Parent: $setLang("Parent Node", "父级节点"),
+                Listorder: $setLang("Listorder", "排序"),
+                Admin: $setLang("Admin", "管理员"),
+                Ordinary: $setLang("Ordinary", "普通用户"),
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        var vm_toolbar2 = new Vue({
+            el: '#toolbar2',
+            data: {
+                Admin: $setLang("Admin", "管理员"),
+                Ordinary: $setLang("Ordinary", "普通用户"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                RoleName: $setLang("Role Name", "角色名称"), 
+            }
+        })
+    </script>
+
+    <script type="text/javascript">
+        var width = 420; //窗框宽度
+        var height = 180; //窗框高度
+        var top = $(document).scrollTop() + ($(window).height() - 360) * 0.5;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/System/RoleAction";
+        var SId = "";  //选中的ID，全局变量
+        //新增相关****************************
+        function AddData() {
+            var CheckID = $("#dgrid1").datagrid("getSelections");
+          
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Add'),
+                    width: width,
+                    height: height,
+                    top: top,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+
+                });
+                type = "Add";
+                //  $('#fmAdd').form('clear'); //清除表单,所有的
+                $('#fmAdd').form('reset'); //清除表单
+                //$("#comEnable").textbox('setValue', 'true')
+           
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) {
+                            var Id = 0;
+                            if (type == "Edit") {
+                                Id = $("#dgrid1").datagrid("getSelections")[0].Id;
+                            }
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: Id, 
+                                Name: $("#txt_Name").val(),
+                            };
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid1").datagrid("reload");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData() {
+            var CheckID = $("#dgrid1").datagrid("getSelections");
+            if (CheckID.length == 1) { 
+                $('#fmAdd').form('load', {
+                    txt_Name: CheckID[0].Name, 
+                });
+                type = "Edit";
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: top,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+        //删除相关****************************
+        function DeleteData() {
+            console.log("Delete");
+            type = "Delete";
+
+            //获取到用户选定ID
+            var deleteID = $("#dgrid1").datagrid("getSelections");
+
+            if (deleteID.length >= 1) {
+                var id = deleteID[0].Id;
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: type, Id: id },
+                                function (data, status) {
+                                    console.log(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid1").datagrid("reload");
+                                        $("#dgrid1").datagrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+
+        }
+        //************************************
+        //查询相关****************************
+        function doFilter(sid) {
+            SId = sid;
+            $('#dgrid2').treegrid('reload', {
+                SysId: sid
+            });
+        }
+        function Checkformater1(value, row, index) { 
+           // return "<input type=\"checkbox\"  name=\"PD\" value=\"" + rec.MAL_ID + "\" >";
+            return "<input type=\"checkbox\"  name=\"PD1\"   />"; 
+        }
+        function Checkformater2(value, row, index) {
+            // return "<input type=\"checkbox\"  name=\"PD\" value=\"" + rec.MAL_ID + "\" >";
+            return "<input type=\"checkbox\"  name=\"PD2\"   />";
+
+        }
+        function checkALL1()
+        {  
+            if ($('#PDALL1').is(':checked')) {
+                //全选
+                $("input[name='PD1']").prop("checked", true);
+            }
+            else
+            {
+                //全不选
+                $("input[name='PD1']").prop("checked", false);
+            } 
+           
+        }
+        function checkALL2() { 
+            if ($('#PDALL2').is(':checked')) {
+                //全选
+                $("input[name='PD2']").prop("checked", true);
+            }
+            else {
+                //全不选
+                $("input[name='PD2']").prop("checked", false);
+            } 
+
+        }
+       
+
+    </script>
+}

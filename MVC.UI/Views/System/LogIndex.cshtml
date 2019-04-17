@@ -1,0 +1,170 @@
+﻿@{
+    ViewBag.Title = "日志管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 70px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td>
+                                    <label for="searchName">{{CreateTime}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-datebox" type="text" id="beginTime" name="beginTime" style="width: 120px;" maxlength="20" />--
+                                    <input class="easyui-datebox" type="text" id="endTime" name="endTime" style="width: 120px;" maxlength="20" />
+                                </td> 
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" class="easyui-datagrid" fit="true" idfield="Id" title="" data-options="
+               url: '/System/LogSearch',
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#toolbar',
+               remoteSort:true,
+               sortName:'CreateTime',
+               sortOrder:'desc',
+               singleSelect:false,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+              method:'post',
+              onRowContextMenu: onRowContextMenu
+               ">
+                <thead>
+                    <tr>
+                        <th data-options="field:'ck',checkbox:true"></th>
+                        <th data-options=" field:'LoginId',width:100,sortable:true">{{LoginId}}</th>
+                        <th data-options=" field:'StaffName',width:100,sortable:true">{{StaffName}}</th>
+                        <th data-options=" field:'Ip',width:120,sortable:true">{{Ip}}</th>
+                        <th data-options=" field:'Types',width:150,sortable:true">{{Types}}</th>
+                        <th data-options=" field:'CreateTime',width:120,sortable:true,formatter:DateFormat">{{CreateTime}}</th>
+
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeleteData();">{{Delete}}</a>
+    </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div--> 
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+    </div>
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"), 
+                LoginId: $setLang("Login ID", "登录名称"),
+                Ip: $setLang("Ip", "Ip"),
+                StaffName: $setLang("Staff Name", "员工姓名"),
+                Types: $setLang("Types", "类型"), 
+                CreateTime: $setLang("CreateTime", "时间"),
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: { 
+                Delete: $lang("Delete"),
+            }
+        })
+    </script>
+    <script type="text/javascript">
+        
+        var url = "/System/LogDelete";
+      
+        //删除相关****************************
+        function DeleteData() {
+            type = "Delete";
+            //获取到用户选定ID
+            var deleteID = $("#dgrid").datagrid("getSelections");
+             
+
+            if (deleteID.length >= 1) { 
+                var ids = ""; //1,2,3,4
+                for (var i = 0; i < deleteID.length; i++) {
+                    ids += deleteID[i].Id + ",";
+                }
+                //去掉最后的一个,
+                ids = ids.substring(0, ids.length - 1);
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { deleteID: ids },
+                                function (data, status) {
+                                    consolelog(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid").datagrid("reload");
+                                        $("#dgrid").datagrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+
+        }
+        //************************************
+        //查询相关****************************
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                beginTime: $('#beginTime').val(),
+                endTime: $('#endTime').val(),
+            });
+        }
+        //************************************
+    
+        
+        //************************************
+    </script>
+}

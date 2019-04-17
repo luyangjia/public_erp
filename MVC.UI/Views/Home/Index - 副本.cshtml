@@ -1,0 +1,423 @@
+﻿@{
+    ViewBag.Title = "";
+    Layout = "~/Views/Shared/_Layout.cshtml"; 
+}
+
+@section head_after{
+    
+    <script type="text/javascript" src="@Url.Content("~/Scripts/common.js")"></script>
+ 
+    <script type="text/javascript">
+      
+
+        function SetLanguage() {
+         
+            if ($.cookie('Language') == "Chinese")
+            {
+                $.cookie('Language', "English");
+            }
+            else
+            {
+                $.cookie('Language', "Chinese");
+            } 
+            //$('#Language').text('ddddddd');
+            //$('#Language').attr('title', 'aaaaaaaa');
+            
+           // vm.lanage = $.cookie('Language');
+            window.location.reload();
+           
+        }
+
+        //修改密码
+        function serverLogin() {
+            var $newpass = $('#txtNewPass');
+            var $rePass = $('#txtRePass');
+           
+            
+
+            if ($newpass.val() == '') {
+                msgShow('系统提示', '请输入密码！', 'warning');
+                return false;
+            }
+            if ($rePass.val() == '') {
+                msgShow('系统提示', '请在一次输入密码！', 'warning');
+                return false;
+            }
+
+            if ($newpass.val() != $rePass.val()) {
+                msgShow('系统提示', '两次密码不一至！请重新输入', 'warning');
+                return false;
+            }
+
+            $.post('/ajax/editpassword.ashx?newpass=' + $newpass.val(),
+                function(msg) {
+                    msgShow('系统提示', '恭喜，密码修改成功！<br>您的新密码为：' + msg, 'info');
+                    $newpass.val('');
+                    $rePass.val('');
+                    close();
+                });
+
+        }
+       
+        $(function() {  
+          //  GetMenu();
+            $('#editpass').click(function() {
+                $('#EditPassword').window('open');
+            });
+
+            $('#Language').click(function () {
+                SetLanguage();
+            });
+            $('#btnEp').click(function () {
+                serverLogin();
+            });
+            $('#btnCancel').click(function() { closePwd(); });
+
+            $('#loginOut').click(function() {
+                $.messager.confirm('系统提示',
+                    '您确定要退出本次登录吗?',
+                    function(r) {
+
+                        if (r) {
+                            location.href = '/ajax/loginout.ashx';
+                        }
+                    });
+            });
+        });
+
+
+        //查看详情***********************
+        function rowformater(value, row, index) {
+            return "<a href=\"#\"  onclick=\"editUser('" + row.NoticContent + "')\">" + row.TitleName + "</a>";
+            //return '<a href="#"  onclick="editUser(' + row + ')">' + row.TitleName + '</a>';
+        }
+        
+        function editUser(values){
+            $('#dlgNotice').window('open');
+            $('#dlgNotice').text(values);
+        }
+  
+
+
+ 
+                   
+
+             
+        //****************************
+    </script>
+     
+}
+
+
+ 
+
+
+<body   class="easyui-layout" data-options="fit:true,scroll:'no'">
+    <div id="top" region="north" split="true" border="false" style="overflow: hidden; height: 40px;background:  #7f99be repeat-x center 50%;
+                                           line-height: 30px;color: #fff; font-family:Arial">
+        <span style="float:right; padding-right:20px;" class="red">
+            <a href="#" id="Language" v-bind:title="Clicklanage" data-options="plain:true,iconCls:'icon-lanage'" class="easyui-linkbutton">{{lbLanage}}: {{Lanage}}</a>&nbsp;&nbsp;
+            <a href="#" id="editpass" v-bind:title="Clickpassword" data-options="plain:true,iconCls:'icon-user_b'"  class="easyui-linkbutton">{{Welcome}}：admin</a>&nbsp;&nbsp;
+            <a href="#" id="loginOut" v-bind:title="Clickexit" data-options="plain:true,iconCls:'icon-systemclose'" class="easyui-linkbutton">{{Exit}}</a>&nbsp;&nbsp;
+             
+
+        </span>
+        <span style="padding-left:10px; font-size: 18px; ">ERP管理系统&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; @ViewBag.MainTime</span> 
+    </div>
+
+    <div  title="菜单管理" data-options="region:'west',split:true,iconCls:'icon-treetop'" style="width: 210px;">
+        <div id="divmenu"  class="easyui-accordion" data-options="fit:true,border:false">
+            <div title="基础信息管理" data-options="iconCls:'icon-folder_home'" style="padding:10px;">
+                <ul id="maintop1" class="tree easyui-tree" data-options="animate:false,lines:true,state:closed">
+                    <li data-options="iconCls:'icon-user_green'">
+                        <a onclick="addTab('员工信息', '/EduManage/PersInfoMain', 'icon-user_green')"><span>员工信息</span></a>
+                    </li>
+                    <li data-options="iconCls:'icon-vcard'">
+                        <a onclick="addTab('学生信息', '/EduManage/StudentMain', 'icon-vcard')"><span>学生信息</span></a>
+                    </li>
+                    <li data-options="iconCls:'icon-book_open'">
+                        <a onclick="addTab('专业信息', '/EduManage/SpecialtyMain', 'icon-book_open')"><span>专业信息</span></a>
+                    </li>
+
+                    <li data-options="iconCls:'icon-user_suit_black'">
+                        <a onclick="addTab('服务联系人', '/EduManage/LeaderMain', 'icon-user_suit_black')"><span>服务联系人</span></a>
+                    </li>
+                    <li data-options="iconCls:'icon-treenote'">
+                        <a onclick="addTab('通知公告', '/EduManage/NoticeMain', 'icon-treenote')"><span>通知公告</span></a>
+                    </li>
+                    <li data-options="iconCls:'icon-folder_page'">
+                        <a onclick="addTab('文档管理', '/EduManage/FileDownloadMain', 'icon-folder_page')"><span>文档管理</span></a>
+                    </li>
+
+                </ul>
+            </div>
+
+
+            <div title="报考管理" data-options="iconCls:'icon-folder_home'" style="padding:10px;">
+                <ul class="easyui-tree" data-options="animate:true,lines:true">
+                    <li>
+                        <span>My Documents</span>
+                        <ul>
+                            <li data-options="state:'closed'">
+                                <span>Photos</span>
+                                <ul>
+                                    <li>
+                                        <span>Friend</span>
+                                    </li>
+                                    <li>
+                                        <span>Wife</span>
+                                    </li>
+                                    <li>
+                                        <span>Company</span>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <span>Program Files</span>
+                                <ul>
+                                    <li>Intel</li>
+                                    <li>Java</li>
+                                    <li>Microsoft Office</li>
+                                    <li>Games</li>
+                                </ul>
+                            </li>
+                            <li data-options="iconCls:'icon-treechild'">
+                                <a onclick="addTab('毕业管理', '/EduManage/OverStuMain', 'icon-treechild')"><span>毕业管理</span></a>
+                            </li>
+                            <li data-options="iconCls:'icon-treechild'">
+                                <a onclick="addTab('毕业管理', '/EduManage/OverStuMain', 'icon-treechild')"><span>毕业管理</span></a>
+                            </li>
+                            <li>welcome.html</li>
+                        </ul>
+                    </li>
+
+                    <li data-options="iconCls:'icon-user_green'">
+                        <a onclick="addTab('员工信息', '/EduManage/PersInfoMain', 'icon-user_green')"><span>员工信息</span></a>
+                    </li>
+                    <li data-options="iconCls:'icon-vcard'">
+                        <a onclick="addTab('学生信息', '/EduManage/StudentMain', 'icon-vcard')"><span>学生信息</span></a>
+                    </li>
+
+                    <li>
+                        <span>My Documents111</span>
+                        <ul>
+                            <li data-options="state:'closed'">
+                                <span>Photos</span>
+                                <ul>
+                                    <li>
+                                        <span>Friend</span>
+                                    </li>
+                                    <li>
+                                        <span>Wife</span>
+                                    </li>
+                                    <li>
+                                        <span>Company</span>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>
+                                <span>Program Files</span>
+                                <ul>
+                                    <li>Intel</li>
+                                    <li>Java</li>
+                                    <li>Microsoft Office</li>
+                                    <li>Games</li>
+                                    <li data-options="iconCls:'icon-treechild'">
+                                        <a onclick="addTab('毕业管理', '/EduManage/OverStuMain', 'icon-treechild')"><span>毕业管理</span></a>
+                                    </li>
+
+                                </ul>
+                            </li>
+                            <li data-options="iconCls:'icon-treechild'">
+                                <a onclick="addTab('毕业管理', '/EduManage/OverStuMain', 'icon-treechild')"><span>毕业管理</span></a>
+                            </li>
+
+                            <li data-options="iconCls:'icon-treechild'">
+                                <a onclick="addTab('毕业管理', '/EduManage/OverStuMain', 'icon-treechild')"><span>毕业管理</span></a>
+                            </li>
+                            <li>welcome.html</li>
+                        </ul>
+                    </li>
+
+                </ul>
+
+                 
+               
+
+ 
+
+
+
+            </div>
+
+
+ 
+
+
+        </div>
+
+
+
+
+    </div>
+
+    <div data-options="region:'south',border:false" style="height: 23px; background: #D2E0F2; ">
+        <div class="footer">Copyright &copy;2018</div>
+    </div>
+
+    <div data-options="region:'center'">
+        <div id="tabs" class="easyui-tabs" data-options="tools:'#tab-tools',fit:true,border:false">
+            <div  title="Home" data-options="iconCls:'icon-house'" style="padding: 1px;">
+                <!--首页开始-->
+
+                <div style="text-align:center;vertical-align:central;">
+                    <h1> Welcome To ERP</h1>
+                </div>
+                 
+
+                <!--首页结束-->
+
+
+            </div>
+
+            
+        </div>
+
+    </div>
+
+
+    <!--修改密码窗口-->
+    <div id="EditPassword" class="easyui-window" v-bind:title="title" collapsible="false" minimizable="false"
+         maximizable="false" data-options="modal:true,shadow:true,closed:true" icon="icon-save" style="width: 380px; height: 170px; padding: 5px;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      background: #fafafa;">
+        <div class="easyui-layout" fit="true">
+            <div region="center" border="false" style="padding: 10px; background: #fff; border: 1px solid #ccc;">
+                <table cellpadding=3>
+                    <tr>
+                        <td style="text-align:right">{{lb_txtNewPass}}：</td>
+                        <td><input type="Password" class="easyui-textbox" v-model="txtNewPass" data-options="required:true,vaildtype:'length[1,20]'" /><span class="red">*</span></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:right">{{lb_txtRePass}}：</td>
+                        <td><input type="Password" class="easyui-textbox" v-model="txtRePass" data-options="required:true,vaildtype:'length[1,20]'" /><span class="red">*</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div region="south" border="false" style="text-align: right; height: 30px; line-height: 30px;">
+                <a id="btnEp" class="easyui-linkbutton" icon="icon-accept" href="javascript:void(0)" v-on:click="Save_EditPassword()">
+                    {{Save}}
+                </a> <a id="btnCancel" class="easyui-linkbutton" icon="icon-cancel" href="javascript:void(0)" v-on:click="Close_EditPassword()">{{Close}}</a>
+            </div>
+        </div>
+    </div>
+
+    <!--右键关闭窗口-->
+    <div id="mm" class="easyui-menu" style="width: 150px;"> 
+        <div id="close">{{Close}}</div>
+        <div id="closeall">{{CloseAll}}</div>
+        <div id="closeother">{{CloseOther}}</div>
+        <div class="menu-sep"></div>
+        <div id="exit">{{Exit}}</div>
+    </div>
+
+ 
+
+</body>
+
+@section body_after{
+  
+ @*vm script*@
+    <script>
+        //所有VM多在这里
+       //修改密码
+        var vm_EditPassword = new Vue({
+            el: '#EditPassword',
+            data: {
+                title: $lang("Edit Password"),
+                lb_txtNewPass: $lang("New Password"),
+                lb_txtRePass: $lang("Confirm Password"),
+                Save: $lang("Save"),
+                Close: $lang("Close"), 
+                txtNewPass: '',
+                txtRePass: '',
+            },
+            methods: {
+                Save_EditPassword: function () {
+                    // 模型改变，视图会自动更新
+                    msgShow($lang('System Info'), $lang('Password Modified Successfully'), 'info');
+                },
+                Close_EditPassword: function () {
+                    $('#EditPassword').window('close');
+                }
+            }
+        })
+
+        //右键关闭
+        var vm_mm = new Vue({
+            el: '#mm',
+            data: {
+                Refresh: $lang("Refresh"),
+                CloseAll: $lang("Close All"),
+                CloseOther: $lang("Close Other"),
+                Exit: $lang("Exit"),
+                Close: $lang("Close"),
+              
+            }
+        })
+        //顶部
+        var vm_top = new Vue({
+            el: '#top',
+            data: {
+                lbLanage: $lang("Language"),
+                Lanage: $lang($.cookie('Language')),
+                Clicklanage: $lang("Click For Change Language"),
+                Welcome: $lang("Welcome"),
+                Clickpassword: $lang("Click For Change Password"),
+                Clickexit: $lang("Click Exit"),
+                Exit: $lang("Exit"),
+
+            }
+        })
+        
+
+    </script>
+
+ <script>
+     //获取左侧菜单
+   //  GetMenu();
+     function GetMenu()
+     {
+         $.ajax({
+             url: "/Home/GetMenu",
+             type: "get",
+             dataType: "json",
+             //data: { "d": new Date().getTime() },
+             // async: false, //默认true 异步
+            // cache:true,  //默认为true（当dataType为script时，默认为false），设置为false将不会从浏览器缓存中加载请求信息。  
+             //timeout: 8000,
+             success: function (data) {
+
+              
+                 $('#divmenu').empty();   //清空resText里面的所有内容
+                 var html = "<div title=\"系统管理\" data-options=\"iconCls:'icon-folder_home'\" style=\"padding:10px;\">";
+                 html=html+"<ul   class=\"easyui-tree\" data-options=\"animate:false,lines:true,state:closed\">";
+                 html=html+"<li data-options=\"iconCls:'icon-user_b'\">";
+                 html=html+" <a onclick=\"addTab('用户信息', '/EduManage/AccountMain', 'icon-user_b')\"><span>用户信息</span></a>";
+                 html=html+"</li>";
+                 html=html+"</ul>";
+                 html=html+"</div>";
+                 //$.each(data.rows, function (Index, item) {
+                    
+                 //});
+                 console.log(html);
+                
+                 $("#divmenu").append(html);
+                 $.parser.parse();  
+             },
+             error: function () {
+             }
+         });
+     }
+
+ </script>
+}

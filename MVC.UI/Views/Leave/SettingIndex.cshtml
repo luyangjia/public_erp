@@ -1,0 +1,360 @@
+﻿@{
+    ViewBag.Title = "假期基本设置";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" class="easyui-datagrid" fit="true" idfield="Id" title="" data-options="
+               url: '/Leave/SettingSearch',
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#toolbar',
+               remoteSort:true,
+               sortName:'Name',
+               sortOrder:'asc',
+               singleSelect:true,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post',
+              onLoadSuccess:onLoadSuccess
+               ">
+                <thead>
+                    <tr>
+                                                <th data-options="field:'Id',width:80,fixed:true,align:'center',formatter:Operation_formatter">{{Operation}}</th>
+                        <th data-options=" field:'Name',width:160,sortable:true">{{Name}}</th>
+                        <th data-options=" field:'Days',width:80,fixed:true,sortable:true">{{Days}}</th>
+                        <th data-options=" field:'Months',width:150,fixed:true,sortable:true">{{Months}}</th>
+                        <th data-options=" field:'IsLimit',width:80,fixed:true,formatter: Enableformater">{{IsLimit}}</th>
+                        <th data-options=" field:'IsCarryOver',width:80,fixed:true,formatter: Enableformater">{{IsCarryOver}}</th>
+                        <th data-options=" field:'IsUnpaid',width:80,fixed:true,formatter: Enableformater">{{IsUnpaid}}</th>
+                        <th data-options=" field:'Enable',width:80,fixed:true,formatter: Enableformater">{{Enable}}</th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Add}}</a>
+     </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+        <div data-options="iconCls:'icon-add'" onclick="AddData();">{{Add}}</div>
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:450px;height:320px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable">
+
+                        <tr>
+                            <td class="firstTd" style="width:150px"><label for="txt_Name">{{Name}}：</label></td>
+                            <td class="nthTd" style="width:260px"><input class="easyui-textbox" id="txt_Name" name="txt_Name" data-options="required:true,validType:'length[0,50]' " style="width:100%;" /></td>
+                        </tr>
+
+                        <tr>
+                            <td class="firstTd"><label for="txt_Days">{{Days}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" id="txt_Days" name="txt_Days" precision="1" data-options="required:true,validType:'length[1,6]',max:3600 " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Months">{{Months}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" id="txt_Months" name="txt_Months" precision="0" data-options="required:true,validType:'length[1,3]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="chk_IsLimit">{{IsLimit}}：</label></td>
+                            <td class="nthTd">
+                                <input type="checkbox" id="chk_IsLimit" name="chk_IsLimit" value="true" label="">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="chk_IsCarryOver">{{IsCarryOver}}：</label></td>
+                            <td class="nthTd">
+                                <input type="checkbox" id="chk_IsCarryOver" name="chk_IsCarryOver" value="true" label="">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="chk_IsUnpaid">{{IsUnpaid}}：</label></td>
+                            <td class="nthTd">
+                                <input type="checkbox" class="checkbox" id="chk_IsUnpaid" name="chk_IsUnpaid" value="true" label="">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="com_Enable">{{Enable}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Enable" name="com_Enable" style="width:100%;" data-options="required:true,editable:false">
+                                    <option value="true">Active</option>
+                                    <option value="false">Inactive</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                Key: $setLang("Key Value", "关键字"),
+                Operation: $setLang("Operation", "操作"),
+                Name: $setLang("Type", "假期类型"),
+                Days: $setLang("Days", "天数"),
+                Months: $setLang("Worked For Months", "工作几个月"),
+                IsUnpaid: $setLang("Unpaid", "是否扣钱"),
+                IsLimit: $setLang("Limit", "是否限制"),
+                IsCarryOver: $setLang("Carry Over", "是否延长"),
+                Enable: $setLang("Enable", "状态"),
+
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                Name: $setLang("Type", "假期类型"),
+                Days: $setLang("Days", "天数"),
+                Months: $setLang("Worked For Months", "工作几个月"),
+                IsUnpaid: $setLang("Unpaid", "是否扣钱"),
+                IsLimit: $setLang("Limit", "是否限制"),
+                IsCarryOver: $setLang("Carry Over", "是否延长"),
+                Enable: $setLang("Enable", "状态"),
+
+            }
+        })
+    </script>
+    <script type="text/javascript">
+        var TbId = 0; //表的Id
+        var width = 500; //窗框宽度
+        var height = 360; //窗框高度
+        var tops = 1;
+        var left = 1;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/Leave/SettingAction";
+        //新增相关****************************
+        function AddData() {
+            $('#dlg_addDialog').dialog({
+                title: $lang('Add'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+
+            });
+            TbId = 0;
+            type = "Add";
+            $('#fmAdd').form('clear'); //清除表单,所有的
+            //$('#fmAdd').form('reset'); //清除表单
+            //$("#com_Sex").textbox('setValue', 'M');
+            $('#com_Enable').combobox('select', 'true');
+            //$("#com_Marital").textbox('setValue', 'Single');
+            //$("#txt_LoginId").textbox({ 'disabled': false });
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) {
+                            
+                            var ckIsLimit = false;
+                            if ($('#chk_IsLimit').is(':checked') == true)
+                            {
+                                ckIsLimit = true;
+                            }
+                            var ckIsCarryOver = false;
+                            if ($('#chk_IsCarryOver').is(':checked') == true) {
+                                ckIsCarryOver = true;
+                            }
+                            var ckIsUnpaid = false;
+                            if ($('#chk_IsUnpaid').is(':checked') == true) {
+                                ckIsUnpaid = true;
+                            }
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: TbId,
+                                Name: $("#txt_Name").val(),
+                                Days: $("#txt_Days").val(),
+                                Months: $("#txt_Months").val(),
+                                IsLimit: ckIsLimit,
+                                IsCarryOver: ckIsCarryOver,
+                                IsUnpaid: ckIsUnpaid,
+                                Enable: $("#com_Enable").combobox('getValue'),
+                            };
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid").datagrid("reload");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData(id, rowObject) { 
+            TbId = id;
+            type = "Edit";
+                $('#fmAdd').form('load', {
+                    txt_Name: rowObject.Name,
+                    txt_Days: rowObject.Days,
+                    txt_Months: rowObject.Months,
+                    //  com_Enable: rowObject.Enable,
+
+                });
+                if (rowObject.Enable)
+                {
+                    $('#com_Enable').combobox('select', 'true');
+                }
+                else {
+                    $('#com_Enable').combobox('select', 'false');
+                }
+                //var active = rowObject.Active;
+                if (rowObject.IsLimit == true) {
+                    $("input[name='chk_IsLimit']").prop("checked", true);
+                }
+                else {
+                    $("input[name='chk_IsLimit']").prop("checked", false);
+                }
+                if (rowObject.IsCarryOver == true) {
+                    $("input[name='chk_IsCarryOver']").prop("checked", true);
+                }
+                else {
+                    $("input[name='chk_IsCarryOver']").prop("checked", false);
+                }
+                if (rowObject.IsUnpaid == true) {
+                    $("input[name='chk_IsUnpaid']").prop("checked", true);
+                }
+                else {
+                    $("input[name='chk_IsUnpaid']").prop("checked", false);
+                } 
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+          
+        }
+        //************************************
+        //删除相关****************************
+        function DeleteData(id, rowObject) { 
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: type, Id: id },
+                                function (data, status) {
+                                    consolelog(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid").datagrid("reload");
+                                        $("#dgrid").datagrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    });
+       
+
+        }
+        //************************************
+        //查询相关****************************
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                Value: $('#searchKey').val(),
+            });
+        }
+        //************************************
+        //其它方法****************************
+
+
+        //************************************
+    </script>
+}

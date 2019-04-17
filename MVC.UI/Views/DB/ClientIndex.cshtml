@@ -1,0 +1,431 @@
+﻿@{
+    ViewBag.Title = "客户管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 70px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+                                
+                                <td>
+                                    <label for="searchKey">{{Key}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-textbox" type="text" id="searchKey" name="searchKey" style="width: 180px;" maxlength="50" />
+                                </td>
+
+
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" class="easyui-datagrid" fit="true" idfield="Id" title="" data-options="
+               url: '/DB/ClientSearch',
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#toolbar',
+               remoteSort:true,
+               sortName:'Name',
+               sortOrder:'asc',
+               singleSelect:true,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post',
+               onLoadSuccess:onLoadSuccess
+               ">
+                <thead>
+                    <tr>
+                        <th data-options="field:'Id',width:80,fixed:true,align:'center',formatter:Operation_formatter">{{Operation}}</th>
+                        <th data-options=" field:'Name',width:160,sortable:true">{{ClientName}}</th>
+                        <th data-options=" field:'Blk',width:50,fixed:true,sortable:true">{{Blk}}</th>
+                        <th data-options=" field:'StreetName',width:80,sortable:true">{{StreetName}}</th>
+                        <th data-options=" field:'BuildingName',width:100,sortable:true">{{BuildingName}}</th>
+                        <th data-options=" field:'Unit',width:60,fixed:true,sortable:true">{{Unit}}</th>
+                        <th data-options=" field:'Phone',width:100,fixed:true,sortable:true">{{Phone}}</th>
+                        <th data-options=" field:'Email',width:120,fixed:true,sortable:true">{{Email}}</th>
+                        <th data-options=" field:'Enable',width:50,fixed:true,formatter: Enableformater">{{Enable}}</th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Add}}</a> 
+    </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+        <div data-options="iconCls:'icon-add'" onclick="AddData();">{{Add}}</div>
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:720px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable">
+
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_ClientName">{{ClientName}}：</label></td>
+                            <td class="nthTd" style="width:230px"><input class="easyui-textbox" id="txt_ClientName" name="txt_ClientName" data-options="required:true,validType:'length[0,50]' " style="width:230px;" /></td>
+                            <td class="firstTd" style="width:130px"><label for="txt_Company">{{Company}}：</label></td>
+                            <td class="nthTd" style="width:230px"><input class="easyui-textbox" id="txt_Company" name="txt_Company" data-options="validType:'length[0,50]' " value="0" style="width:230px;" /></td>
+                        </tr>
+                      
+                        <tr>
+                            <td class="firstTd"><label for="com_Race">{{Race}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Race" name="com_Race" style="width:100%;" data-options="url:'/Base/GetCombox?type=Race&first=null',
+					            method:'get',
+					            valueField:'text',
+					            textField:'text',
+					            panelHeight:'auto'"></select>
+                            </td>
+                            <td class="firstTd"><label for="txt_Nric">{{Nric}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Nric" name="txt_Nric" data-options="validType:'length[0,15]' " style="width:100%;" /></td>
+                        </tr>
+                       
+                        <tr>
+                            <td class="firstTd"><label for="txt_Phone">{{Phone}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Phone" name="txt_Phone" data-options="validType:'length[0,20]' " style="width:100%;" /></td>
+                            <td class="firstTd"><label for="txt_Mobile">{{Mobile}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Mobile" name="txt_Mobile" data-options="validType:'length[0,20]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Email">{{Email}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Email" name="txt_Email" data-options="validType:'length[0,50]' " style="width:100%;" /></td>
+                            <td class="firstTd"><label for="txt_Fax">{{Fax}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Fax" name="txt_Fax" data-options="validType:'length[0,20]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Sectors">{{Sectors}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Sectors" name="txt_Sectors" data-options="validType:'length[0,30]' " style="width:100%;" /></td>
+                            <td class="firstTd"></td>
+                            <td class="nthTd"></td>
+                        </tr>
+                     
+                        <tr>
+                            <td class="firstTd"><label for="txt_Blk">{{Blk}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Blk" name="txt_Blk" data-options="validType:'length[0,10]' " style="width:100%;" /></td>
+                            <td class="firstTd"><label for="txt_StreetName">{{StreetName}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_StreetName" name="txt_StreetName" data-options="validType:'length[0,50]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_BuildingName">{{BuildingName}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_BuildingName" name="txt_BuildingName" data-options="validType:'length[0,50]' " style="width:100%;" /></td>
+                            <td class="firstTd"><label for="txt_Unit">{{Unit}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Unit" name="txt_Unit" data-options="validType:'length[0,50]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_PostalCode">{{PostalCode}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_PostalCode" name="txt_PostalCode" data-options="validType:'length[0,10]' " style="width:100%;" /></td>
+                            <td class="firstTd"><label for="com_Enable">{{Enable}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Enable" name="com_Enable" style="width:100%;" data-options="required:true,editable:false">
+                                    <option value="true"  >Active</option>
+                                    <option value="false">Inactive</option>
+                                </select>
+                            </td>
+                        </tr>
+
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                Key: $setLang("Key Value", "关键字"),
+                LoginId: $setLang("Login ID", "登录名称"),
+                Operation: $setLang("Operation", "操作"),
+                Password: $setLang("Password", "密码"),
+                ClientName: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+                Race: $setLang("Race", "种族"),
+                Nric: $setLang("Nric", "身份证号"),
+                Sectors: $setLang("Sectors", "领域"),
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Enable: $setLang("Enable", "状态"),
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                LoginId: $setLang("Login ID", "登录名称"),
+                Password: $setLang("Password", "密码"),
+                ClientName: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+                Race: $setLang("Race", "种族"),
+                Nric: $setLang("Nric", "身份证号"),
+                Sectors: $setLang("Sectors", "领域"),
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Enable: $setLang("Enable", "状态"),
+            }
+        })
+    </script>
+    <script type="text/javascript">
+        var TbId = 0; //表的Id
+        var width = 760; //窗框宽度
+        var height = 430; //窗框高度
+        var tops = 1;
+        var left = 1;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/DB/ClientAction";
+        //新增相关****************************
+        function AddData() {
+            $('#dlg_addDialog').dialog({
+                title: $lang('Add'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+
+            });
+            type = "Add";
+            TbId = 0; ;
+            $('#fmAdd').form('clear'); //清除表单,所有的
+            //$('#fmAdd').form('reset'); //清除表单
+            //$("#com_Sex").textbox('setValue', 'M');
+            $('#com_Enable').combobox('select', 'true');
+            //$("#com_Marital").textbox('setValue', 'Single');
+            //$("#txt_LoginId").textbox({ 'disabled': false });
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) { 
+                            //var active = "N";
+                            //var chkvalue = $('#chbox_YN').is(':checked');
+                            //if (chkvalue == true)
+                            //{
+                            //    active = "Y";
+                            //}
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: TbId, 
+                                Name: $("#txt_ClientName").val(),
+                                Company: $("#txt_Company").val(),
+                                Race: $("#com_Race").combobox('getValue'),
+                                Nric: $("#txt_Nric").val(),
+                                Sectors: $("#txt_Sectors").val(), 
+                                Phone: $("#txt_Phone").val(),
+                                Mobile: $("#txt_Mobile").val(),
+                                Email: $("#txt_Email").val(),
+                                Fax: $("#txt_Fax").val(),
+                                Blk: $("#txt_Blk").val(),
+                                StreetName: $("#txt_StreetName").val(),
+                                BuildingName: $("#txt_BuildingName").val(),
+                                Unit: $("#txt_Unit").val(),
+                                PostalCode: $("#txt_PostalCode").val(),
+                                Enable: $("#com_Enable").combobox('getValue'),
+
+                            };
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid").datagrid("reload");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData(id, rowObject) {
+            TbId = id;
+            type = "Edit";
+                $("#txt_LoginId").textbox({ 'disabled': true });
+                $('#fmAdd').form('load', { 
+                    txt_ClientName: rowObject.Name,
+                    txt_Company: rowObject.Company,
+                    com_Race: rowObject.Race,
+                    txt_Nric: rowObject.Nric,  
+                    txt_Phone: rowObject.Phone,
+                    txt_Mobile: rowObject.Mobile,
+                    txt_Email: rowObject.Email,
+                    txt_Fax: rowObject.Fax,
+                    txt_Blk: rowObject.Blk,
+                    txt_StreetName: rowObject.StreetName,
+                    txt_BuildingName: rowObject.BuildingName,
+                    txt_Unit: rowObject.Unit,
+                    txt_PostalCode: rowObject.PostalCode,
+                   //  com_Enable: rowObject.Enable,
+                    
+                });
+                if (rowObject.Enable)
+                {
+                    $('#com_Enable').combobox('select', 'true');
+                }
+                else {
+                    $('#com_Enable').combobox('select', 'false');
+                }
+                //var active = rowObject.Active;
+                //if (active == "Y") {
+                //    $("input[name='chbox_YN']").prop("checked", true);
+                //}
+                //else {
+                //    $("input[name='chbox_YN']").prop("checked", false);
+                //}
+                 
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+             
+        }
+        //************************************
+        //删除相关****************************
+        function DeleteData(id, rowObject) {
+            TbId = id;
+            type = "Delete";
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: type, Id: id },
+                                function (data, status) {
+                                    consolelog(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid").datagrid("reload");
+                                        $("#dgrid").datagrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    }); 
+
+        }
+        //************************************
+        //查询相关****************************
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                Name: $('#searchKey').val(),
+            });
+        }
+        //************************************
+        //其它方法****************************
+      
+        
+        //************************************
+    </script>
+}

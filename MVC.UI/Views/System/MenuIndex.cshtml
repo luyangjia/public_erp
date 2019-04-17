@@ -1,0 +1,364 @@
+﻿@{
+    ViewBag.Title = "菜单管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" class="easyui-treegrid" fit="true" title="" data-options="
+               url: '/System/MenuSearch',
+               rownumbers:true,
+               toolbar:'#toolbar',
+               treeField: 'Name',
+               animate: true,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post',
+               idField: 'Id',
+              onContextMenu: onTreeContextMenu
+               ">
+                <thead>
+                    <tr>
+                        <th data-options=" field:'Name',width:200">{{Name}}</th>
+                        <th data-options=" field:'ChineseName',width:170">{{ChineseName}}</th>
+                        <th data-options=" field:'Url',width:180">{{Url}}</th>
+                        <th data-options=" field:'Icon',width:120">{{Icon}}</th>
+                        <th data-options=" field:'Keys',width:100">{{Keys}}</th>
+                        <th data-options=" field:'Listorder',width:70">{{Listorder}}</th>
+                        <th data-options=" field:'Enable',width:70,formatter: Enableformater">
+                            {{Enable}}
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Add}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="EditData();">{{Edit}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeleteData();">{{Delete}}</a>
+    </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+        <div data-options="iconCls:'icon-add'" onclick="AddData();">{{Add}}</div>
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:620px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable">
+                        <tr>
+                            <td class="firstTd"><label for="comParent">{{Parent}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combotree" id="comParent" name="comParent" style="width:450px;" data-options="
+					url: '/System/GetParent'"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txtName">{{Name}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txtName" name="txtName" data-options="required:true,validType:'length[1,50]' " style="width:450px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txtChineseName">{{ChineseName}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txtChineseName" name="txtChineseName" data-options="required:true,validType:'length[0,50]' " style="width:450px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txtUrl">{{Url}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txtUrl" name="txtUrl" data-options="validType:'length[0,100]' " style="width:450px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txtIcon">{{Icon}}：</label></td>
+                            <td class="nthTd">
+                                <input class="easyui-combobox" id="comIcon" name="comIcon" style="width:100%;" data-options="
+                    showItemIcon: true,
+                    required:true,
+                    data: [
+                        {value:'icon-folder_home',text:'icon-folder_home',iconCls:'icon-folder_home',selected:true},
+                        {value:'icon-treechild',text:'icon-treechild',iconCls:'icon-treechild'},
+                        {value:'icon-vcard',text:'icon-vcard',iconCls:'icon-vcard'},
+                        {value:'icon-folder_page',text:'icon-folder_page',iconCls:'icon-folder_page'},
+                        {value:'icon-database',text:'icon-database',iconCls:'icon-database'},
+                        {value:'icon-database_yellow',text:'icon-database_yellow',iconCls:'icon-database_yellow'},
+                        {value:'icon-book',text:'icon-book',iconCls:'icon-book'},
+                        {value:'icon-book_open',text:'icon-book_open',iconCls:'icon-book_open'},
+                        {value:'icon-book_edit',text:'icon-book_edit',iconCls:'icon-book_edit'},
+                        {value:'icon-user_suit_black',text:'icon-user_suit_black',iconCls:'icon-user_suit_black'},
+                        {value:'icon-user',text:'icon-user',iconCls:'icon-user'},
+                        {value:'icon-user_b',text:'icon-user_b',iconCls:'icon-user_b'},
+                        {value:'icon-user_key',text:'icon-user_key',iconCls:'icon-user_key'},
+                        {value:'icon-user_green',text:'icon-user_green',iconCls:'icon-user_green'},
+                        {value:'icon-plugin',text:'icon-plugin',iconCls:'icon-plugin'},
+                        {value:'icon-table',text:'icon-table',iconCls:'icon-table'},
+                        {value:'icon-shape_3d',text:'icon-shape_3d',iconCls:'icon-shape_3d'},
+
+                    ],
+                    editable: false,
+                    panelHeight: '250px', 
+                    labelPosition: 'top'
+                    ">
+                      
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txtKeys">{{Keys}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txtKeys" name="txtKeys" data-options="required:true,validType:'length[0,5]' " style="width:450px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txtListorder">{{Listorder}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" precision="2" id="txtListorder" name="txtListorder" data-options="required:true,validType:'length[0,10]' " style="width:450px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txtListorder">{{Enable}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="comEnable" name="comEnable" style="width: 180px;" data-options="required:true">
+                                    <option value="true" selected="selected">true</option>
+                                    <option value="false">false</option>
+                                </select>
+                            </td>
+                        </tr>
+
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#dgrid',
+            data: {
+                Parent: $setLang("Parent Node", "父级节点"),
+                Name: $setLang("English", "英文名"),
+                ChineseName: $setLang("Chinese", "中文名"),
+                Url: $setLang("Url", "Url"),
+                Icon: $setLang("Icon", "图标"),
+                Keys: $setLang("Keys", "权限"),
+                Listorder: $setLang("Listorder", "排序"),
+                Enable: $setLang("Enable", "是否启用"),
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                Parent: $setLang("Parent Node", "父级节点"),
+                Name: $setLang("English", "英文名"),
+                ChineseName: $setLang("Chinese", "中文名"),
+                Url: $setLang("Url", "Url"),
+                Icon: $setLang("Icon", "图标"),
+                Keys: $setLang("Keys", "权限"),
+                Listorder: $setLang("Listorder", "排序"),
+                Enable: $setLang("Enable", "是否启用"),
+            }
+        })
+
+
+
+    </script>
+
+
+
+    <script type="text/javascript">
+        var width = 620; //窗框宽度
+        var height = 400; //窗框高度
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/System/MenuAction";
+        //新增相关****************************
+        function AddData() {
+            $('#dlg_addDialog').dialog({
+                title: $lang('Add'),
+                width: width,
+                height: height,
+                top:1,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+
+            });
+            type = "Add";
+            $('#fmAdd').form('clear'); //清除表单,所有的
+            //$('#fmAdd').form('reset'); //清除表单
+            $("#comEnable").textbox('setValue', 'true');
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) {
+                            var Id = 0;
+                            if (type == "Edit") {
+                                Id = $("#dgrid").datagrid("getSelections")[0].Id;
+                            }
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: Id,
+                                Name: $("#txtName").val(),
+                                ChineseName: $("#txtChineseName").val(),
+                                Url: $("#txtUrl").val(),
+                                Icon: $("#comIcon").combobox('getValue'),
+                                Keys: $("#txtKeys").val(),
+                                Listorder: $("#txtListorder").val(),
+                                Enable: $("#comEnable").val(),
+                                ParentId: $("#comParent").combobox('getValue'),
+                            };
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid").treegrid("reload");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData() {
+
+            var CheckID = $("#dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                consolelog(CheckID);
+                $('#fmAdd').form('load', {
+                    txtName: CheckID[0].Name,
+                    txtChineseName: CheckID[0].ChineseName,
+                    txtUrl: CheckID[0].Url,
+                    comIcon: CheckID[0].Icon,
+                    txtKeys: CheckID[0].Keys,
+                    txtListorder: CheckID[0].Listorder,
+                    comEnable: CheckID[0].Enable,
+                    comParent: CheckID[0].ParentId,
+                });
+                type = "Edit";
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: $(document).scrollTop() + ($(window).height() - 360) * 0.5,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+
+            }
+
+        }
+
+        //************************************
+        //删除相关****************************
+        function DeleteData() {
+             type = "Delete";
+
+            //获取到用户选定ID
+            var deleteID = $("#dgrid").datagrid("getSelections");
+
+            if (deleteID.length >= 1) {
+                var id = deleteID[0].Id;
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: type, Id: id },
+                                function (data, status) {
+                                    consolelog(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid").treegrid("reload");
+                                        $("#dgrid").treegrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+
+        }
+        //************************************
+        //其它方法****************************
+        
+        //************************************
+
+
+    </script>
+}

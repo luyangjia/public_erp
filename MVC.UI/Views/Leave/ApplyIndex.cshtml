@@ -1,0 +1,521 @@
+﻿@{
+    ViewBag.Title = "员工假期申请列表";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 70px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td>
+                                    <label for="searchName">{{Times}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-datebox" type="text" id="search_beginTime" name="search_beginTime" style="width: 120px;" maxlength="20" />--
+                                    <input class="easyui-datebox" type="text" id="search_endTime" name="search_endTime" style="width: 120px;" maxlength="20" />
+                                </td>
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" class="easyui-datagrid" fit="true" idfield="Id" title="" data-options="
+               url: '/Leave/ApplySearch',
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#toolbar',
+               remoteSort:true,
+               sortName:'FromDate',
+               sortOrder:'desc',
+               singleSelect:true,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post',
+              onLoadSuccess:onLoadSuccess
+               ">
+                <thead>
+                    <tr>
+                        <th data-options="field:'Id',width:120,fixed:true,align:'center',formatter:Operationformatter">{{Operation}}</th>
+                        <th data-options=" field:'UserName',width:120,fixed:true,sortable:true">{{UserName}}</th>
+                        <th data-options=" field:'SetingName',width:150,fixed:true,sortable:true">{{SetingName}}</th>
+                        <th data-options=" field:'FromDate',width:250,fixed:true,sortable:true,formatter: Timesformater">{{Times}}</th>
+                        <th data-options=" field:'Days',width:60,fixed:true">{{Days}}</th>
+                        <th data-options=" field:'Reaon',width:120">{{Reaon}}</th>
+                        <th data-options=" field:'ApprovalName',width:120,fixed:true">{{ApprovalName}}</th>
+                        <th data-options=" field:'Status',width:80,fixed:true,formatter: Statusformater">{{Status}}</th>
+
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Apply}}</a>
+    </div>
+  
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:690px;height:320px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable">
+
+                        <tr>
+                            <td class="firstTd" style="width:150px"><label>{{Date}}：</label></td>
+                            <td class="nthTd" style="width:540px">
+                                <input class="easyui-datebox" id="txt_FromDate" name="txt_FromDate" data-options="required:true,validType:'length[0,10]' " style="width:160px;" />
+                                <select class="easyui-combobox" id="com_FromType" name="com_FromType" style="width:90px;" data-options="required:true,editable:false">
+                                    <option value="Morning" selected>Morning</option>
+                                    <option value="Afternoon">Afternoon</option>
+                                </select>
+                                --
+                                <input class="easyui-datebox" id="txt_EndDate" name="txt_EndDate" data-options="required:true,validType:'end' " style="width:160px;" />
+                                <select class="easyui-combobox" id="com_EndType" name="com_EndType" style="width:90px;" data-options="required:true,editable:false">
+                                    <option value="Morning">Morning</option>
+                                    <option value="Afternoon" selected>Afternoon</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="firstTd"><label>{{UserName}}：</label></td>
+                            <td class="nthTd">
+                                <label>@ViewBag.UserName</label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label>{{Type}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Type" name="com_Type" style="width:320px;" data-options="required:true,editable:false,
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+					            panelHeight:'250px',
+                                formatter: formatType"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label>{{Reaon}}：</label></td>
+                            <td class="nthTd">
+                                <input class="easyui-textbox" id="tex_Reaon" name="tex_Reaon" data-options="required:true,multiline:true,validType:'length[0,2000]'" style="width:100%;height:100px">
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+  
+      @*查看窗口*@
+    <div id="dlg_viewResonDialog" class="easyui-dialog" title="" style="width:620px;height:160px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_viewResonDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmView" method="post" data-options="novalidate:true">
+            <div id="tabView" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblView" class="windowtable">
+                        <tr>
+                            <td class="firstTd" style="width:150px"><label>{{ApprovalReaon}}：</label></td>
+                            <td class="nthTd" style="width:470px">
+                                <input class="easyui-textbox" id="tex_ApprovalReaon" name="tex_ApprovalReaon" data-options="multiline:true,validType:'length[0,2000]'" style="width:100%;height:100px">
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                Operation: $setLang("Operation", "操作"),
+                UserName: $setLang("Staff Name", "员工姓名"),
+                SetingName: $setLang("Type", "假期类型"),
+                Days: $setLang("Days", "天数"),
+                Times: $setLang("Leave Date", "请假时间"),
+                Reaon: $setLang("Reaon", "请假理由"),
+                ApprovalName: $setLang("Approval Name", "审批人"),
+                Agree: $setLang("Agree", "是否同意"),
+                Status: $setLang("Status", "状态"),
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"), 
+                Apply: $setLang("Apply", "申请"),
+            }
+        }) 
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                Name: $setLang("Type", "假期类型"),
+                Days: $setLang("Days", "天数"),
+                Months: $setLang("Worked For Months", "工作几个月"),
+                IsUnpaid: $setLang("Unpaid", "是否扣钱"),
+                IsLimit: $setLang("Limit", "是否限制"),
+                IsCarryOver: $setLang("Carry Over", "是否延长"),
+                Enable: $setLang("Enable", "状态"),
+                Date: $setLang("Leave Date", "日期"),
+                Type: $setLang("Type", "类型"),
+                UserName: $setLang("Staff Name", "员工姓名"),
+                Reaon: $setLang("Reaon", "请假理由"),
+            }
+        })
+        //查看模态框
+        var vm_view = new Vue({
+            el: '#dlg_viewResonDialog',
+            data: {
+                title: $lang("Basic Information"),
+                Name: $setLang("Type", "假期类型"), 
+                ApprovalReaon: $setLang("Opinion", "审批意见"),
+            }
+        })
+    </script>
+    <script type="text/javascript"> 
+
+        var TbId = 0; //表的Id
+        var width = 740; //窗框宽度
+        var height = 360; //窗框高度
+        var tops = 1;
+        var left = 1;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/Leave/ApplyAction";
+        //新增相关****************************
+        function AddData() {
+            var url = '/Base/GetCombox?type=Leave&userId=' +@ViewBag.UserId + '&random=' + Math.random();
+            $('#com_Type').combobox('clear');
+            $('#com_Type').combobox('reload', url);
+
+            $('#dlg_addDialog').dialog({
+                title: $lang('Apply'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+
+            });
+            type = "Apply";
+            TbId = 0;
+            $('#fmAdd').form('clear'); //清除表单,所有的
+            //$('#fmAdd').form('reset'); //清除表单
+            //$("#com_Sex").textbox('setValue', 'M');
+            $('#com_FromType').combobox('select', 'Morning');
+            $('#com_EndType').combobox('select', 'Afternoon');
+            //$("#com_Marital").textbox('setValue', 'Single');
+            //$("#txt_LoginId").textbox({ 'disabled': false });
+            var myDate = new Date();
+            myDate.setDate(myDate.getDate() + 1);
+            var y = myDate.getFullYear();
+            var m = myDate.getMonth() + 1;
+            var d = myDate.getDate();
+            var newdate = (m < 10 ? ('0' + m) : m) + '/' + (d < 10 ? ('0' + d) : d) + '/' + y;
+            $('#txt_FromDate').textbox('setValue', newdate)
+            $('#txt_EndDate').textbox('setValue', newdate);
+
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) { 
+                            var days = DateDiff($("#txt_FromDate").val(), $("#txt_EndDate").val());
+                            var fromtype = $("#com_FromType").combobox('getValue');
+                            var endtype = $("#com_EndType").combobox('getValue');
+                            var addday = 0;
+                            if (fromtype == "Morning" && endtype == "Afternoon") {
+                                addday = 1;
+                            }
+                            else if (fromtype == endtype) {
+                                addday = 0.5;
+                            }
+                            if (addday > 0 || days > 0) {
+                                //创建传递的参数
+                                var postdata = {
+                                    Action: type,
+                                    Id: TbId,
+                                    FromDate: $("#txt_FromDate").val(),
+                                    FromType: $("#com_FromType").combobox('getValue'),
+                                    EndDate: $("#txt_EndDate").val(),
+                                    EndType: $("#com_EndType").combobox('getValue'),
+                                    SetingId: $("#com_Type").combobox('getValue'),
+                                    SetingName: $("#com_Type").combobox('getText'),
+                                    Days: days + addday,
+                                    Reaon: $("#tex_Reaon").val(),
+                                    Status: 0,
+                                    IsLock: 0,
+                                };
+                                //发送异步请求到后台保存用户数据
+                                $.post(url,
+                                    postdata,
+                                    function (data, status) {
+                                        if (status == "success" && data === "OK") {
+                                            msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                            $('#dlg_addDialog').dialog('close');
+                                            $("#dgrid").datagrid("reload");
+                                        } else {
+                                            msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                        }
+                                    });
+                            }
+                            else {
+                                msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                            }
+
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //变更相关****************************
+        function ChangeData(id, rowObject) {
+            TbId = id;
+            var userId = rowObject.UserId;
+            var setingId = rowObject.SetingId;
+            var url = '/Base/GetCombox?type=Leave&userId=' + userId + '&random=' + Math.random();
+            $('#com_Type').combobox('clear');
+            $('#com_Type').combobox('reload', url);
+
+            $('#fmAdd').form('load', { 
+                txt_FromDate: rowObject.FromDate,
+                txt_EndDate: rowObject.EndDate,
+                com_FromType: rowObject.FromType,
+                com_EndType: rowObject.EndType,
+                tex_Reaon: rowObject.Reaon,
+                com_Type: rowObject.SetingId,
+            });
+        
+            type = "Change";
+            $('#dlg_addDialog').dialog({
+                title: $lang('Change'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+            });
+
+        }
+        //************************************
+        //变更相关****************************
+        function ViewData(id, rowObject) {
+            TbId = id;   
+            $('#fmView').form('load', { 
+                tex_ApprovalReaon: rowObject.ApprovalReaon,
+            });
+          
+            type = "View";
+            $('#dlg_viewResonDialog').dialog({
+                title: $lang('View'),
+                width: 680,
+                height: 260,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+            }); 
+
+        }
+        //************************************
+        //删除相关****************************
+        function DeleteData(id, rowObject) {
+            //发送异步请求删除数据
+            $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                function (DeleteSelect) {
+                    if (DeleteSelect) {
+                        $.post(url,
+                            { Action: "Delete", Id: id },
+                            function (data, status) {
+                                consolelog(status);
+                                if (status == "success" && data == "OK") {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                    $("#dgrid").datagrid("reload");
+                                    $("#dgrid").datagrid("clearSelections");
+                                } else {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                }
+                            });
+                    }
+                });
+
+
+        }
+        //************************************
+        //撤销申请****************************
+        function UndoData(id, rowObject) {
+            //发送异步请求撤销申请数据
+            $.messager.confirm($lang('The System Prompt'), $setLang('Are You Sure Undo Selected Data ?', '您确定要撤销选中的数据吗？'),
+                function (DeleteSelect) {
+                    if (DeleteSelect) {
+                        $.post(url,
+                            { Action: "Undo", Id: id, Status: rowObject.Status },
+                            function (data, status) {
+                                consolelog(status);
+                                if (status == "success" && data == "OK") {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                    $("#dgrid").datagrid("reload");
+                                    $("#dgrid").datagrid("clearSelections");
+                                } else {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                }
+                            });
+                    }
+                });
+
+
+        }
+        //************************************
+        //查询相关****************************
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                BeginTime: $('#search_beginTime').val(),
+                EndTime: $('#search_endTime').combobox('getValue'),
+            });
+        }
+        //************************************
+        //其它方法****************************
+        function formatType(rowObject) {
+            var remday = "";
+            if (rowObject.RemainingDays == null) {
+                remday = "--";
+            }
+            else {
+                remday = rowObject.RemainingDays;
+            }
+            var s = '<span style="font-weight:">' + rowObject.text + '</span><br/>' +
+					'<span style="color:#888;">Use:' + rowObject.UseDays + ' ,Remaining:' + remday + ' </span>';
+            return s;
+        }
+        function Timesformater(value, rowObject, index) {
+            var result = jsonDateFormat(rowObject.FromDate) + " " + rowObject.FromType + "--" + jsonDateFormat(rowObject.EndDate) + " " + rowObject.EndType;
+            return result;
+        }
+        function Statusformater(value, rowObject, index) {
+            var html = "";
+            if (value ==0)
+                html = "<font color=#0000CC >Wait</font>";
+            if (value == 1)
+                html = "<a href=\"javascript:void(0)\"  onclick='ViewData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' >Agree</a>";
+             
+             if (value == 2)
+                    html = "<a href=\"javascript:void(0)\"  onclick='ViewData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' >Reject</a>";
+             
+            if (value == 3)
+                  html = "<font color=#FF0000 >Change(New)</font>";
+            if (value ==4)
+                html = "<font color=#FF0000 >Change(Old)</font>";
+            if (value == 5)
+                html = "<font color=#9F88FF >Undo</font>";
+            if (value == 10)
+                html = "<font color=#888888 >Invalid</font>";
+
+            return html;
+        }
+        function Operationformatter(value, rowObject, index) {
+            var html = "";   
+            if (rowObject.IsLock == 0 && rowObject.Status == 1) {
+                html = html + "<a href=\"javascript:void(0)\" class=\"editIcon\" title='" + $setLang("Change", "变更") + "' onclick='ChangeData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' ></a>";
+            }
+            else {
+                html = html + "<a href=\"javascript:void(0)\" class=\"editdisabledIcon\" title='" + $setLang("Change", "变更") + "'  ></a>";
+            }
+            html = html + "┆";
+            if (rowObject.IsLock == 0 && rowObject.Status == 1) {
+                html = html + "<a href=\"javascript:void(0)\" class=\"undoIcon\" title='" + $setLang("Undo", "撤销") + "' onclick='UndoData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' ></a>";
+            }
+            else {
+                html = html + "<a href=\"javascript:void(0)\" class=\"undodisabledIcon\" title='" + $setLang("Change", "撤销") + "'  ></a>";
+            }
+            html = html + "┆";
+            if (rowObject.IsLock == 0 && rowObject.Status == 0) {
+                html = html + "<a href=\"javascript:void(0)\"  class=\"deleteIcon\"  title='" + $setLang("Delete", "删除") + "' onclick='DeleteData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' ></a>";
+            }
+            else {
+                html = html + "<a href=\"javascript:void(0)\"  class=\"deletedisabledIcon\"  title='" + $setLang("Delete", "删除") + "'  ></a>";
+            }
+            return html;
+        }
+
+        //************************************
+    </script>
+}

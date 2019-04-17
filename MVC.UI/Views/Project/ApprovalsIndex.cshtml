@@ -1,0 +1,327 @@
+﻿@{
+    ViewBag.Title = "项目报价";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section head_after{
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/datagrid-detailview.js")"></script>
+}
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 70px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+
+                                <td>
+                                    <label for="searchKey">{{ProjectName}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-textbox" type="text" id="searchKey" name="searchKey" style="width: 180px;" maxlength="50" />
+                                </td>
+
+
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" fit="true"></table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-treenotemain',plain:true" onclick="Quotation();">{{Quotation}}</a>
+    </div>
+
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+          <div data-options="iconCls:'icon-treenotemain'" onclick="Quotation();">{{Quotation}}</div>
+    </div>
+
+    
+
+    @*添加人员弹窗*@ @*添加工作计划弹窗*@ @*添加项目协议*@
+    <div id="dlg_addDialog2" class="easyui-dialog" title="" style="width:720px;height:370px;" closed="true">
+    </div>
+
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                Key: $setLang("Key Value", "关键字"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                ProjectType: $setLang("Project Type", "项目类别"),
+                Company: $setLang("Company", "公司名称"),
+                BeginDate: $setLang("Begin Date", "开始日期"),
+                EndDate: $setLang("End Date", "结束日期"),
+                Property: $setLang("Type Of Property", "性质"),
+                WalkIn: $setLang("Type Of Walk-In", "预定类型"),
+                VisitDate: $setLang("Visit Date", "来访日期"),
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Status: $setLang("Status", "状态"),
+                Remark: $setLang("Remark", "备注"),
+                Manager: $setLang("Manager", "经理"),
+                TotalAmount: $setLang("Total Amount", "总金额"),
+                ModifiedDate: $setLang("Modified Date", "最后修改时间"),
+
+                AgreeNo: $setLang("Agreement No", "协议号"),
+                QuotationName: $setLang("Quotation Name", "报价名称"),
+                Remark: $setLang("Remark", "备注"),
+                Type: $setLang("Type", "类型"),
+                Total: $setLang("Total", "金额"),
+
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+                ManagerUser: $setLang("Manager User", "管理用户"),
+                Plan: $setLang("Project Plan", "项目计划"),
+                Quotation: $setLang("Project Quotation", "项目报价"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+                ManagerUser: $setLang("Manager User", "管理用户"),
+                Plan: $setLang("Project Plan", "项目计划"),
+                Quotation: $setLang("Project Quotation", "项目报价"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                ProjectType: $setLang("Project Type", "项目类别"),
+                Company: $setLang("Company", "公司名称"),
+                BeginDate: $setLang("Begin Date", "开始日期"),
+                EndDate: $setLang("End Date", "结束日期"),
+                Property: $setLang("Type Of Property", "性质"),
+                WalkIn: $setLang("Type Of Walk-In", "预定类型"),
+                VisitDate: $setLang("Visit Date", "来访日期"),
+
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Status: $setLang("Status", "状态"),
+                Remark: $setLang("Remark", "备注"),
+            }
+        })
+        //添加人员弹框
+        var vm_dialog2 = new Vue({
+            el: '#dlg_addDialog2',
+            data: {
+                title: $lang("Basic Information"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+
+            }
+        })
+        //工作计划弹框
+        var vm_dialog3 = new Vue({
+            el: '#dlg_addDialog3',
+            data: {
+                title: $lang("Basic Information"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+
+            }
+        })
+    </script>
+    <script type="text/javascript">
+
+        $('#dgrid').datagrid({
+            url: '/Project/QuotationSearch',
+            rownumbers: true,
+            pagination: true,
+            pagenumber: 1,
+            pageSize: pageSize,
+            pageList: pageList,
+            toolbar: '#toolbar',
+            remoteSort: true,
+            sortName: 'CreateDate',
+            sortOrder: 'desc',
+            singleSelect: true,
+            nowrap: false,
+            loadMsg: loadMsg,
+            striped: true,
+            method: 'post',
+            columns: [
+                [
+                    { field: 'ProjectName', title: vm_gridhead.ProjectName, width: 250 },
+                    { field: 'CompanyName', title: vm_gridhead.Company, width: 280 },
+                    { field: 'ClientName', title: vm_gridhead.Client, width: 100 },
+
+                    { field: 'Leader', title: vm_gridhead.Manager, width: 100 },
+                    //{ field: 'Leader', title: vm_gridhead.TotalAmount, width: 80 },
+                    {
+                        field: 'CreateDate', title: vm_gridhead.ModifiedDate, formatter: function (value, row, index) {
+                            var str = "";
+                            if (value != null)
+                                str = jsonDateTimeFormat(value);
+                            return str;
+                        }, width: 110
+                    },
+
+                ]
+            ],
+            view: detailview,
+            detailFormatter: function (index, row) {
+                var temp=[];
+                if(row.Client!=null)
+                {
+                temp.push('<div style="padding:5px">');
+                temp.push('<table class="windowtable"  style="width:720px">');
+                temp.push('<tr>');
+                temp.push('<td class="firstTd" style="width: 130px;">Client Name：</td>');
+                temp.push('<td class="nthTd" style="width: 230px;" colspan="3">' + row.Client.Name + '</td>');
+                temp.push('</tr>');
+                temp.push('<tr>');
+                temp.push('<td class="firstTd" style="width: 130px;">Blk：</td>');
+                temp.push('<td class="nthTd" style="width: 230px;">' + row.Client.Blk + '</td>');
+                temp.push('<td class="firstTd" style="width: 130px;">Street Name：</td>');
+                temp.push('<td class="nthTd" style="width: 230px;">' + row.Client.StreetName + '</td>');
+                temp.push('</tr>');
+                temp.push('<tr>');
+                temp.push('<td class="firstTd" style="width: 130px;">Building Name：</td>');
+                temp.push('<td class="nthTd" style="width: 230px;">' + row.Client.BuildingName + '</td>');
+                temp.push('<td class="firstTd" style="width: 130px;">Unit：</td>');
+                temp.push('<td class="nthTd" style="width: 230px;">' + row.Client.Unit + '</td>');
+                temp.push('</tr>');
+                temp.push('<tr>');
+                temp.push('<td class="firstTd" style="width: 130px;">Postal Code：</td>');
+                temp.push('<td class="nthTd" style="width: 230px;">' + row.Client.PostalCode + '</td>');
+                temp.push('<td class="firstTd" style="width: 130px;">Mobile：</td>');
+                temp.push('<td class="nthTd" style="width: 230px;">' + row.Client.Mobile + '</td>');
+                temp.push('</tr>');
+                temp.push('</table>');
+                temp.push('</div>');
+                }
+                return temp.join('');
+               // return '<div style="padding:5px">wwwwwwwwww</div>';
+            },
+
+            onRowContextMenu: function(e, rowIndex, rowData) { //右键时触发事件
+                //三个参数：e里面的内容很多，真心不明白，rowIndex就是当前点击时所在行的索引，rowData当前行的数据
+            e.preventDefault(); //阻止浏览器捕获右键事件
+            $(this).datagrid("clearSelections"); //取消所有选中项
+            $(this).datagrid("selectRow", rowIndex); //根据索引选中该行
+            $('#menu').menu('show', {
+                //显示右键菜单
+                left: e.pageX,//在鼠标点击处显示菜单
+                top: e.pageY
+            });
+        }
+        });
+
+
+    </script>
+
+
+    <script type="text/javascript"> 
+   
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                Value: $('#searchKey').val(),
+            });
+        }
+        //************************************
+        //其它方法****************************
+ 
+        //************************************
+    </script>
+    @*添加人员相关脚本*@
+    <script type="text/javascript">
+        
+        //协议****************************
+        function Quotation() {
+            var CheckID = $("#dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                // consolelog(CheckID);
+                // $("#txt_LoginId").textbox({ 'disabled': true });
+                var projectId = CheckID[0].Id;
+
+                $('#dlg_addDialog2').dialog({
+                    title: $setLang("Project Quotation", "项目协议") + "   【" + CheckID[0].ProjectName + "】",
+                    width: 620,
+                    height: 420,
+                    top: 1,
+                    left: 1,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    fit:true,
+                    href: '/Project/ApporvalsQuotation?projectId=' + projectId,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+
+    </script>
+
+}

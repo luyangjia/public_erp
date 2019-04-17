@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+
+    <title>@ViewBag.Title</title>
+    <link href="@Url.Content("~/Content/EasyUI/themes/default/easyui.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/EasyUI/themes/icon.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/EasyUI/demo/demo.css")" rel="stylesheet" />
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/jquery-1.4.4.min.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/locale/easyui-lang-zh_CN.js")"></script> 
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/jquery.easyui.min.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/datagrid-groupview.js")"></script>
+
+
+    @RenderSection("head_after", false)
+</head>
+<body>
+
+@RenderBody()
+</body>
+ 
+
+@RenderSection("body_after", false)
+
+</html>
+

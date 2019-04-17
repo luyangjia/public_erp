@@ -1,0 +1,21 @@
+﻿<!DOCTYPE html>
+<html>
+<head> 
+
+    <title>@ViewBag.Title</title> 
+    <link href="@Url.Content("~/Content/EasyUI/themes/default/easyui.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/EasyUI/themes/icon.css")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/admin.css")" rel="stylesheet" />
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/jquery.min.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/jquery.cookie.js")"></script>
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/jquery.easyui.min.js")"></script>   
+    <script type="text/javascript" src="@Url.Content("~/Scripts/vue.min.js")"></script>  
+    <script type="text/javascript" src="@Url.Content("~/Scripts/MyFunction.js")"></script> 
+    @RenderSection("head_after", false)
+</head>
+@RenderBody()
+
+@RenderSection("body_after", false)
+ 
+</html>
+

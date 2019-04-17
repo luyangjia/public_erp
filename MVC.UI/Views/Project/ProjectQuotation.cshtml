@@ -1,0 +1,687 @@
+﻿@{
+    ViewBag.Title = "人员管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+} 
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb_Quotation">
+        <!-------------------------------搜索框----------------------------------->
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="Quotation_dgrid" class="easyui-datagrid" fit="true" data-options="
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#Quotation_toolbar',
+               remoteSort:true,
+               sortName:'AgreeIndex',
+               sortOrder:'asc',
+               singleSelect:true,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post',
+               view: detailview,
+              detailFormatter:QuotationdetailFormatter, 
+              onExpandRow:Quotationdetail_onExpandRow
+            ">
+                <thead>
+                    <tr> 
+
+                        <th data-options="field:'_operate',width:80,align:'center',formatter:OperationQuotaion">{{Operation}}</th>
+                        <th data-options=" field:'AgreeNo',width:100,sortable:false">{{AgreeNo}}</th>
+                        <th data-options=" field:'AgreeName',width:90,sortable:false">{{QuotationName}}</th>
+                        <th data-options=" field:'Remark',width:90,sortable:false">{{Remark}}</th>
+                        <th data-options=" field:'Status',width:90,sortable:false,formatter:StatusFormatter">{{Type}}</th> 
+                        <th data-options=" field:'right',width:90,sortable:false,formatter:TotalFormatter">{{Total}}</th>
+
+                        <th data-options=" field:'ApprovalUserName',width:90,sortable:false">{{Approval}}</th>
+                        <th data-options=" field:'AgreeDate',width:90,sortable:false,formatter:AgreeDateFormatter">{{ModifiedDate}}</th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="Quotation_toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-reload',plain:true" onclick="Reload('#Quotation_dgrid');">{{Reload}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddQuotationData();">{{Add}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="EditQuotationData();">{{Edit}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeleteQuotationData();">{{Delete}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-treenotemain',plain:true" onclick="QuotationListData();">{{Quotation}}</a>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog_Quotation" class="easyui-dialog" title="" style="width:720px;height:340px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save_Quotation();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog_Quotation').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd_Quotation" method="post" data-options="novalidate:true">
+            <div id="tabAdd_Quotation" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd_Quotation" class="windowtable">
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_QuotationName">{{QuotationName}}：</label></td>
+                            <td class="nthTd" style="width: 460px;"><input class="easyui-textbox" id="txt_QuotationName" name="txt_QuotationName" data-options="required:true,validType:'length[1,200]' " style="width:100%;" /></td>
+                        </tr>
+
+                        <tr>
+                            <td class="firstTd"><label for="txt_QuotationRemark">{{Remark}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_QuotationRemark" name="txt_QuotationRemark" data-options="multiline:true,validType:'length[0,500]' " style="width:100%;height:40px" /></td>
+                        </tr>
+                        
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+    @* @*添加项目协议*@
+    <div id="dlg_addDialog_Quotation2" class="easyui-dialog" title="" style="width:720px;height:370px;" closed="true">
+    </div>
+    @*提交Agree弹窗*@  
+    <div id="dlg_Dialog_Agree" class="easyui-dialog" title="" style="width:460px;height:260px;" data-options="iconCls:'icon-save',buttons: [{
+		text:$setLang('Agree','同意'),
+					iconCls:'icon-accept',
+					handler:function(){
+						AgreeData();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_Dialog_Agree').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd_Agree" method="post" data-options="novalidate:true">
+            <div id="tabAdd_Agree" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd_Agree" class="windowtable">
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_AgreeTotalPrice">{{TotalPrice}}：</label></td>
+                            <td class="nthTd" style="width: 300px;">
+                                <span class="textbox easyui-fluid numberbox" style="width: 100%;">
+                                    <input id="txt_AgreeTotalPrice" name="txt_AgreeTotalPrice" v-model="AgreeTotalPrice_value" maxlength="8" readonly="readonly" type="text" class="textbox-text validatebox-text" autocomplete="off" tabindex="" placeholder="" style="width: 289px; margin: 0px; padding-top: 0px; padding-bottom: 0px; height: 22px; line-height: 22px;">
+                                </span>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_AgreeDiscount">{{Discount}}：</label></td>
+                            <td class="nthTd" style="width: 300px;">
+                                <span class="textbox easyui-fluid numberbox" style="width: 100%;">
+                                    <input id="txt_AgreeDiscount" name="txt_AgreeDiscount" v-model="AgreeDiscount_value" maxlength="8" onblur="onchangeVlaue(1)" onkeypress="if((event.keyCode<48 || event.keyCode>57) && event.keyCode!=46 || /\.\d\d$/.test(value))event.returnValue=false" type="text" class="textbox-text validatebox-text" autocomplete="off" tabindex="" placeholder="" style="width: 289px; margin: 0px; padding-top: 0px; padding-bottom: 0px; height: 22px; line-height: 22px;">
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_AgreeGrandTotal">{{GrandTotal}}：</label></td>
+                            <td class="nthTd" style="width: 300px;">
+                                <span class="textbox easyui-fluid numberbox" style="width: 100%;">
+                                    <input id="txt_AgreeGrandTotal" name="txt_AgreeGrandTotal" v-model="GrandTotal_value" maxlength="8" onblur="onchangeVlaue(2)" onkeypress="if((event.keyCode<48 || event.keyCode>57) && event.keyCode!=46 || /\.\d\d$/.test(value))event.returnValue=false" type="text" class="textbox-text validatebox-text" autocomplete="off" tabindex="" placeholder="" style="width: 289px; margin: 0px; padding-top: 0px; padding-bottom: 0px; height: 22px; line-height: 22px;">
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_AgreeGST">{{GST}}：</label></td>
+                            <td class="nthTd" style="width: 300px;">
+                                <span class="textbox easyui-fluid numberbox" style="width: 100%;">
+                                    <input id="txt_AgreeGST" name="txt_AgreeGST" v-model="AgreeGST_value" maxlength="8" readonly="readonly" type="text" class="textbox-text validatebox-text" autocomplete="off" tabindex="" placeholder="" style="width: 289px; margin: 0px; padding-top: 0px; padding-bottom: 0px; height: 22px; line-height: 22px;">
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_AgreeGSTAmount">{{GSTAmount}}：</label></td>
+                            <td class="nthTd" style="width: 300px;">
+                                <span class="textbox easyui-fluid numberbox" style="width: 100%;">
+                                    <input id="txt_AgreeGSTAmount" name="txt_AgreeGSTAmount" v-model="AgreeGSTAmount_value" maxlength="8" readonly="readonly" type="text" class="textbox-text validatebox-text" autocomplete="off" tabindex="" placeholder="" style="width: 289px; margin: 0px; padding-top: 0px; padding-bottom: 0px; height: 22px; line-height: 22px;">
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_NeedPay">{{NeedPay}}：</label></td>
+                            <td class="nthTd" style="width: 300px;">
+                                <span class="textbox easyui-fluid numberbox" style="width: 100%;">
+                                    <input id="txt_NeedPay" name="txt_NeedPay" v-model="NeedPay_value" maxlength="8" readonly="readonly" type="text" class="textbox-text validatebox-text" autocomplete="off" tabindex="" placeholder="" style="width: 289px; margin: 0px; padding-top: 0px; padding-bottom: 0px; height: 22px; line-height: 22px;">
+                                </span>
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        var vm_Quotationgridhead = new Vue({
+            el: '#Quotation_dgrid',
+            data: {
+                Condition: $lang("Search Condition"),
+                Operation: $setLang("Operation", "操作"),
+                Search: $lang("Search"),
+                AgreeNo: $setLang("Agreement No", "协议号"),
+                QuotationName: $setLang("Quotation Name", "报价名称"),
+                Remark: $setLang("Remark", "备注"),
+                Type: $setLang("Type", "类型"),
+                Total: $setLang("Total", "金额"),
+                Approval: $setLang("Approval User", "审批人"),
+                ModifiedDate: $setLang("Modified Date", "修改日期"),
+
+                Category: $setLang("Category", "分类"),
+                Description: $setLang("Description", "描述"),
+                CostMarkup: $setLang("Cost Markup(%)", "盈利(%)"),
+                Uom: $setLang("Uom", "单位"),
+                Cost: $setLang("Cost", "成本"),
+                Price: $setLang("Price", "单价"),
+                Qty: $setLang("Qty", "数量"),
+                TotalCost: $setLang("Total Cost", "总成本"),
+                TotalPrice: $setLang("Total Price", "总价格"),
+
+            }
+        }) 
+
+        //toolbar按钮
+        var vm_Quotationtoolbar = new Vue({
+            el: '#Quotation_toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+                Quotation:$setLang("Quotation", "协议"),
+                Reload: $setLang("Reload", "刷新"),
+                Operation: $setLang("Operation", "操作"),
+                Agree: $setLang("Agree", "同意"),
+                Resubmit: $setLang("Resubmit", "撤回")
+            }
+        })
+        //增加修改模态框
+        var vm_Quotationdialog = new Vue({
+            el: '#dlg_addDialog_Quotation',
+            data: {
+                title: $lang("Basic Information"),
+                AgreeNo: $setLang("Agreement No", "协议号"),
+                QuotationName: $setLang("Quotation Name", "报价名称"),
+                Remark: $setLang("Remark", "备注"),
+                Type: $setLang("Type", "类型"),
+                Total: $setLang("Total", "金额"),
+                Approval: $setLang("Approval User", "审批人"),
+            }
+        })
+        //
+         //Agree模态框
+        var vm_dlg_Dialog_Agree = new Vue({
+            el: '#dlg_Dialog_Agree',
+            data: {
+                title: $lang("Basic Information"),
+                TotalPrice: $setLang("Total Price", "总金额"),
+                Discount: $setLang("Discount", "优惠"),
+                GST: $setLang("GST(%)", "税(%)"),
+                GSTAmount: $setLang("GST Amount", "税额"),
+                GrandTotal: $setLang("Total", "金额"),
+                 NeedPay: $setLang("Need Pay", "需付款"),
+                 AgreeTotalPrice_value: 0,
+                AgreeDiscount_value: 0,
+                AgreeGST_value: 0,
+                AgreeGSTAmount_value: 0,
+                GrandTotal_value: 0,
+                NeedPay_value:0,
+            },
+            methods: {},
+            watch: {
+               
+            }, 
+            computed: { 
+            }
+        })
+  
+function onchangeVlaue(ty) { 
+     if(ty==1)
+     {
+         //修改了优惠金额
+         vm_dlg_Dialog_Agree.GrandTotal_value=vm_dlg_Dialog_Agree.AgreeTotalPrice_value-vm_dlg_Dialog_Agree.AgreeGSTAmount_value;
+     }
+     else if(ty==2){
+        //修改了总金额
+      vm_dlg_Dialog_Agree.AgreeDiscount_value=vm_dlg_Dialog_Agree.AgreeTotalPrice_value-vm_dlg_Dialog_Agree.GrandTotal_value;
+     }
+     vm_dlg_Dialog_Agree.AgreeGSTAmount_value=(vm_dlg_Dialog_Agree.GrandTotal_value*vm_dlg_Dialog_Agree.AgreeGST_value*0.01).toFixed(2);
+     vm_dlg_Dialog_Agree.NeedPay_value =(vm_dlg_Dialog_Agree.GrandTotal_value+vm_dlg_Dialog_Agree.AgreeGSTAmount_value).toFixed(2);
+}
+    </script>
+    <script>
+        var projectId=@ViewBag.projectId; 
+
+    $("#Quotation_dgrid").datagrid({
+        url: '/Project/ProjectQuotationSearch',
+        queryParams: {
+            'projectId': projectId,
+        },
+    });
+ 
+    //-------------------------------------------------------------------------
+
+    var type_Quotation = "Add"; //区分修改还是新增，修改：Edit
+    var url_Quotation = "/Project/ProjectQuotationAction";
+    //新增相关****************************
+    function AddQuotationData() {
+        $('#dlg_addDialog_Quotation').dialog({
+            title: $lang('Add'),
+            width: 760,
+            height: 380,
+            closed: false,
+            draggable: true,
+            resizable: true,
+            maximizable: true,
+            collapsible: true,
+            cache: false,
+            modal: true
+
+        });
+        type_Quotation = "Add";
+        $('#fmAdd_Quotation').form('clear'); //清除表单,所有的
+        //$('#fmAdd').form('reset'); //清除表单
+        //$("#com_Sex").textbox('setValue', 'M');
+        //$("#com_Active").textbox('setValue', 'In Office');
+        //$("#com_Marital").textbox('setValue', 'Single');
+        //$("#txt_LoginId").textbox({ 'disabled': false });
+    }
+
+    //更新数据按钮
+    function Dialog_Save_Quotation() {
+        $('#fmAdd_Quotation').form('submit',
+            {
+                onSubmit: function () {
+                    var b = $(this).form('enableValidation').form('validate');
+                    if (b) {
+                        var Id = 0;
+                        if (type_Quotation == "Edit") {
+                            Id = $("#Quotation_dgrid").datagrid("getSelections")[0].Id;
+                        }
+
+                        //创建传递的参数
+                        var postdata = {
+                            Action: type_Quotation,
+                            Id: Id,
+                            ProjectId:projectId,
+                            AgreeName: $("#txt_QuotationName").val(),
+                            Remark: $("#txt_QuotationRemark").val(),
+                        };
+                        //发送异步请求到后台保存用户数据
+                        $.post(url_Quotation,
+                            postdata,
+                            function (data, status) {
+                                if (status == "success" && data === "OK") {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                    $('#dlg_addDialog_Quotation').dialog('close');
+                                    $("#Quotation_dgrid").datagrid("reload");
+                                } else {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                }
+                            });
+
+
+                    } else {
+                        msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                    }
+                }
+            });
+    }
+
+    //修改相关****************************
+    function EditQuotationData() {
+        var CheckID = $("#Quotation_dgrid").datagrid("getSelections");
+        if (CheckID.length == 1) {
+            // consolelog(CheckID);
+            // $("#txt_LoginId").textbox({ 'disabled': true });
+            $('#fmAdd_Quotation').form('load', {
+                txt_QuotationName: CheckID[0].AgreeName,
+                txt_QuotationRemark: CheckID[0].Remark,
+
+            });
+
+            type_Quotation = "Edit";
+
+            $('#dlg_addDialog_Quotation').dialog({
+                title: $lang('Edit'),
+                width: 760,
+                height: 380,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+            });
+        }
+        else {
+            if (CheckID.length == 0) {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+            else {
+                msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+            }
+        }
+    }
+    //************************************
+    //删除相关****************************
+    function DeleteQuotationData() {
+        type_Quotation = "Delete";
+        //获取到用户选定ID
+        var deleteID = $("#Quotation_dgrid").datagrid("getSelections");
+
+        if (deleteID.length >= 1) {
+            var id = deleteID[0].Id;
+            //发送异步请求删除数据
+            $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                function (DeleteSelect) {
+                    if (DeleteSelect) {
+                        $.post(url_Quotation,
+                            { Action: type_Quotation, Id: id },
+                            function (data, status) {
+                                consolelog(status);
+                                if (status == "success" && data == "OK") {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                    $("#Quotation_dgrid").datagrid("reload");
+                                    $("#Quotation_dgrid").datagrid("clearSelections");
+                                } else {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                }
+                            });
+                    }
+                });
+        } else {
+            msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+        }
+
+    }
+    //************************************
+    //其它方法****************************
+    function StatusFormatter(value, row, index) {
+        var str = "Quotation";
+        if (value == "1")
+            str = "Agreement";
+        return str;
+    }
+    function AgreeDateFormatter(value, row, index) {
+        var str = "";
+        if (value != null)
+            str = jsonDateTimeFormat(value);
+        return str;
+    }
+    function TotalFormatter(value, row, index) {
+        var str = "Quotation";
+        if (value == "1")
+            str = "Agreement";
+        return str;
+    }
+    function OperationQuotaion(value, row, index)
+    {
+        var str=""; 
+        if(row.Status==0)
+        {
+            str ="<a href=\"javascript:void(0)\" onclick='Agree(" + JSON.stringify(row) + ");'>"+vm_Quotationtoolbar.Agree+"</a>";
+        }
+        else{ 
+            str ='<span style="color:gray">'+vm_Quotationtoolbar.Agree+'</span>';
+        }
+        //if(row.Status==2)
+        //{
+        //    str =str+" | <a href=\"javascript:void(0)\" onclick='Resubmit(" + JSON.stringify(row) + ");'>"+vm_Quotationtoolbar.Resubmit+"</a>";
+        //}
+        //else{
+        //    str =str+' | <span style="color:gray">'+vm_Quotationtoolbar.Resubmit+'</span>';
+        //}
+
+        return str;
+    }
+        //这里定义 刚才点击的是哪个协议，哪个项目
+    var click_agreeId=0;
+    var click_projectId=0;
+    var click_totalcost=0;
+    var click_totalprice=0;
+    function Agree(datarow)
+    {
+        console.log(datarow);
+        $('#dlg_Dialog_Agree').dialog({
+            title:$setLang("Agree", "同意"),
+            width: 520,
+            height: 350,
+            top: 1,
+            closed: false,
+            draggable: true,
+            resizable: true,
+            maximizable: true,
+            collapsible: true,
+            cache: false,
+            modal: true
+
+        });
+
+        click_agreeId=datarow.Id;
+        click_projectId=datarow.projectId;
+        var totalprice=0;
+        var totalcots=0;
+        if(datarow.AgreeList!=null)
+        {
+            $.each(datarow.AgreeList,function(index,value){
+                totalprice=totalprice+value.TotalPrice;
+                totalcots=totalcots+value.TotalCost;
+            });
+        }
+       
+        click_totalcost=totalcots.toFixed(2);
+        click_totalprice=totalprice.toFixed(2);
+       // $("#txt_AgreeTotalPrice").textbox('setValue',totalprice)
+       // $("#txt_AgreeGST").textbox('setValue',datarow.Project.Company.GST)
+    vm_dlg_Dialog_Agree.AgreeTotalPrice_value=totalprice;
+    vm_dlg_Dialog_Agree.AgreeDiscount_value=0;
+    vm_dlg_Dialog_Agree.AgreeGST_value=datarow.Project.Company.GST;
+    vm_dlg_Dialog_Agree.GrandTotal_value=totalprice;
+    vm_dlg_Dialog_Agree.AgreeGSTAmount_value=(totalprice*datarow.Project.Company.GST*0.01).toFixed(2);
+    vm_dlg_Dialog_Agree.NeedPay_value=(vm_dlg_Dialog_Agree.GrandTotal_value+(totalprice*datarow.Project.Company.GST*0.01)).toFixed(2);
+
+       // console.log(datarow);
+    }
+    function Resubmit(datarow)
+    {
+        console.log(datarow);
+        $('#dlg_Dialog_Resubmit').dialog({
+            title:$setLang("Resubmit", "撤销"),
+            width: 300,
+            height: 270,
+            top: 1,
+            closed: false,
+            draggable: true,
+            resizable: true,
+            maximizable: true,
+            collapsible: true,
+            cache: false,
+            modal: true
+
+        });
+    }
+
+    //明细表
+    function QuotationdetailFormatter(index, row) {
+        return '<div style="padding:5px"><table id="tbDataAuthorityItemQuotation-' + index + '"></table></div>';
+    }
+    function Quotationdetail_onExpandRow(index, row){
+        //统计值
+        var totalprice=0;
+        var totalcots=0;
+        if(row.AgreeList!=null)
+        {
+            $.each(row.AgreeList,function(index,value){
+                totalprice=totalprice+value.TotalPrice;
+                totalcots=totalcots+value.TotalCost;
+            });
+        }
+        
+
+        $('#tbDataAuthorityItemQuotation-' + index).datagrid({
+            data:row.AgreeList,
+            singleSelect: true,
+            rownumbers: true,
+            loadMsg: loadMsg,
+            height: 'auto',
+            showFooter: true,
+            columns: [
+                [
+                    { field: 'Category',width:100, title: vm_Quotationgridhead.Category },
+                    { field: 'Description',width:250, title: vm_Quotationgridhead.Description},
+                    { field: 'Uom',width:100, title: vm_Quotationgridhead.Uom },
+                    { field: 'Qty',width:50, title: vm_Quotationgridhead.Qty ,align:'right'},
+                    { field: 'Cost', width:80,title: vm_Quotationgridhead.Cost,align:'right' },
+                    { field: 'TotalCost', width:80,title: vm_Quotationgridhead.TotalCost,align:'right' },
+                    { field: 'Price',width:80, title: vm_Quotationgridhead.Price,align:'right' },
+                    { field: 'TotalPrice', width:80,title: vm_Quotationgridhead.TotalPrice,align:'right'},
+                    { field: 'CostMarkup', width:100,title: vm_Quotationgridhead.CostMarkup,align:'right' }
+                ]
+            ],
+            onResize: function () {
+                $('#Quotation_dgrid').datagrid('fixDetailRowHeight', index);
+            },
+            onLoadSuccess: function () {
+                setTimeout(function () {
+                    $('#Quotation_dgrid').datagrid('fixDetailRowHeight', index);
+                },
+                    0);
+                //增加尾巴统计
+                $(this).datagrid('reloadFooter',
+               [
+                {Category: "Total", TotalCost: totalcots.toFixed(2),TotalPrice:totalprice.toFixed(2)}
+               ]);
+
+
+
+
+
+            }
+        });
+        $('#Quotation_dgrid').datagrid('fixDetailRowHeight', index);
+    }
+
+    function TotalFormatter(value, row, index){
+        //统计值
+        var totalprice=0; 
+        if(row.AgreeList!=null)
+        {
+            $.each(row.AgreeList,function(index,value){
+                totalprice=totalprice+value.TotalPrice; 
+            });
+        } 
+        return totalprice;
+        
+    }
+    //签署协议
+    function AgreeData(){
+            
+        //创建传递的参数
+        var postdata = { 
+            Action:"Agree",
+            Id: click_agreeId,
+            ProjectId: click_projectId,
+            Status:2,
+            CostTotal:click_totalcost,
+            PriceTotal: click_totalprice,
+            Discount: $("#txt_AgreeDiscount").val(),
+            Gst: $("#txt_AgreeGST").val(),
+            GstTotal: $("#txt_AgreeGSTAmount").val(),
+            GrandTotal: $("#txt_NeedPay").val(),  
+        };
+      //  console.log(postdata);
+       
+            // console.log(postdata);
+            //发送异步请求到后台保存数据
+        $.post("/Project/ProjectAgreeAction",
+                postdata,
+                function (data, status) {
+                    if (status == "success" && data === "OK") {
+                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info'); 
+                        $("#Quotation_dgrid").datagrid("reload");
+                        $("#Quotation_dgrid").datagrid("clearSelections");
+                        $('#dlg_Dialog_Agree').dialog('close');
+                    } else {
+                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                    }
+                });
+     
+
+
+
+
+
+
+
+    }
+
+ 
+     
+    </script>
+
+
+
+    @*添加人员相关脚本*@
+    <script type="text/javascript"> 
+        //协议****************************
+        function QuotationListData() {
+            var CheckID = $("#Quotation_dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                // consolelog(CheckID);
+                // $("#txt_LoginId").textbox({ 'disabled': true });
+                var agreeId = CheckID[0].Id;
+                var projectId = CheckID[0].ProjectId;
+                $('#dlg_addDialog_Quotation2').dialog({
+                    title: $setLang("Project Quotation", "项目协议") + "   【" + CheckID[0].AgreeName + "】",
+                    width: 620,
+                    height: 420,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    fit:true,
+                    href: '/Project/ProjectQuotationList?agreeId=' + agreeId+'&projectId=' + projectId,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+        //
+         
+    </script>
+
+   
+
+</body>
+
+
+
+
+
+

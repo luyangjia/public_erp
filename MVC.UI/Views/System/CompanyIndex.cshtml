@@ -1,0 +1,633 @@
+﻿@{
+    ViewBag.Title = "公司管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section head_after{
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/datagrid-detailview.js")"></script>
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 70px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+                                <td>
+                                    <label for="searchName">{{Company}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-textbox" type="text" id="searchName" name="searchName" style="width: 150px;" maxlength="50" />
+                                </td>
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" fit="true"></table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Add}}</a> 
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-group_link',plain:true" onclick="AddGroupData();">{{AddGroup}}</a>
+     </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+        <div data-options="iconCls:'icon-add'" onclick="AddData();">{{Add}}</div>
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+        <div data-options="iconCls:'icon-group_link'" onclick="AddGroupData();">{{AddGroup}}</div>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:720px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable"> 
+                        <tr>
+                            <td class="firstTd" style="width: 130px;"><label for="txt_Company">{{Company}}：</label></td>
+                            <td class="nthTd" style="width: 230px;"><input class="easyui-textbox" type="text" id="txt_Company" name="txt_Company" data-options="required:true,validType:'length[1,50]' " style="width:230px;" /></td>
+                            <td class="firstTd" style="width: 130px;"><label for="txt_Alias">{{Alias}}：</label></td>
+                            <td class="nthTd" style="width: 230px;"><input class="easyui-textbox" id="txt_Alias" name="txt_Alias" data-options="validType:'length[0,50]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Phone">{{Phone}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Phone" name="txt_Phone" data-options="validType:'length[0,15]' " style="width:230px;" /></td>
+                            <td class="firstTd"><label for="txt_Fax">{{Fax}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Fax" name="txt_Fax" data-options="validType:'length[0,20]' " style="width:230px;" /></td>
+                            </tr>
+                        <tr>
+                             <td class="firstTd"><label for="txt_Email">{{Email}}：</label></td>
+                            <td class="nthTd" colspan="3"><input class="easyui-textbox" id="txt_Email" name="txt_Email" data-options="validType:'length[0,50]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_GST">{{GST}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" precision="2" id="txt_GST" name="txt_GST" data-options="validType:'length[0,10]' " value="0" style="width:230px;" /></td>
+                            <td class="firstTd"><label for="txt_GSTReg">{{GSTReg}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_GSTReg" name="txt_GSTReg" data-options="validType:'length[1,50]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_AgreementNo">{{AgreementNo}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" id="txt_AgreementNo" name="txt_AgreementNo" data-options="required:true,validType:'length[1,10]' " style="width:230px;" /></td>
+                            <td class="firstTd"><label for="txt_License">{{License}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_License" name="txt_License" data-options="validType:'length[0,50]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_ReceiptNo">{{ReceiptNo}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox"  id="txt_ReceiptNo" name="txt_ReceiptNo" data-options="validType:'length[0,10]' " style="width:230px;" /></td>
+                            <td class="firstTd"><label for="txt_Registration">{{Registration}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Registration" name="txt_Registration" data-options="validType:'length[0,50]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Address">{{Address}}：</label></td>
+                            <td class="nthTd" colspan="3"><input class="easyui-textbox" id="txt_Address" name="txt_Address" data-options="validType:'length[0,200]' " style="width:595px;" /></td>
+                        </tr>  
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+    @*添加部门弹窗*@
+    <div id="dlg_addDialog2" class="easyui-dialog" title="" style="width:550px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save2();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog2').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd2" method="post" data-options="novalidate:true">
+            <div id="tabAdd2" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd2" class="windowtable">
+                        <tr>
+                            <td class="firstTd" style="width: 130px;"><label for="txt_DepartmentName">{{DepartmentName}}：</label></td>
+                            <td class="nthTd" style="width: 420px;"><input class="easyui-textbox" type="text" id="txt_DepartmentName" name="txt_DepartmentName" data-options="required:true,validType:'length[1,50]' " style="width: 100%;" /></td>
+                       </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_Manage">{{Manage}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Manage" name="com_Manage" style="width: 100%;" data-options="url:'/Base/GetCombox?type=User&first=null',
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+                                 editable:false,
+					            panelHeight:'auto'"></select>
+                            </td>
+                        </tr>  
+                        
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                Operation: $setLang("Operation", "操作"),
+                Company: $setLang("Company Name", "公司名称"),
+                Alias: $setLang("Alias", "别名"), 
+                Address: $setLang("Address", "地址"),
+                Logo: $setLang("Logo", "Logo"),
+                Phone: $setLang("Phone", "联系电话"),
+                Fax: $setLang("Fax", "传真"),
+                Email: $setLang("Email", "邮箱"),
+                Registration: $setLang("Registration", "注册号"),
+                GST: $setLang("GST(%)", "税(%)"),
+                GSTReg: $setLang("GST Reg", "税号"),
+                AgreementNo: $setLang("Agreement No", "合同号"),
+                License: $setLang("HDB License", "许可证"),
+                ReceiptNo: $setLang("Receipt#", "收款号"), 
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+                AddGroup: $setLang("Add Department", "增加部门"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+                AddGroup: $setLang("Add Department", "增加部门"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                Company: $setLang("Company Name", "公司名称"),
+                Alias: $setLang("Alias", "别名"),
+                Address: $setLang("Address", "地址"),
+                Logo: $setLang("Logo", "Logo"),
+                Phone: $setLang("Phone", "联系电话"),
+                Fax: $setLang("Fax", "传真"),
+                Email: $setLang("Email", "邮箱"),
+                Registration: $setLang("Registration", "注册号"),
+                GST: $setLang("GST(%)", "税(%)"),
+                GSTReg: $setLang("GST Reg", "税号"),
+                AgreementNo: $setLang("Agreement No", "合同号"),
+                License: $setLang("HDB License", "许可证"),
+                ReceiptNo: $setLang("Receipt#", "收款号"),
+            }
+        })
+
+        //增加部门模态框
+        var vm_dialog2 = new Vue({
+            el: '#dlg_addDialog2',
+            data: {
+                title: $lang("Basic Information"),
+                DepartmentName: $setLang("Department Name", "部门名称"),
+                Manage: $setLang("Manage", "负责人"),
+                Operate: $setLang("Operate", "操作"),
+            }
+        })
+    </script>  
+
+    @*TABLE加载*@
+<script type="text/javascript"> 
+    $('#dgrid').datagrid({
+        url: '/System/CompanySearch',
+        rownumbers: true,
+        pagination: true,
+        pagenumber: 1,
+        pageSize: pageSize,
+        pageList: pageList,
+        toolbar: '#toolbar',
+        remoteSort: true,
+        sortName: 'Company',
+        sortOrder: 'asc',
+        singleSelect: true,
+        nowrap: false,
+        loadMsg: loadMsg,
+        striped: true,
+        method: 'post',
+        onLoadSuccess:onLoadSuccess,
+        columns: [
+            [
+                
+        { field: 'Id', title: vm_gridhead.Operation, width: 80, sortable: true, fixed: true, align: 'center', formatter: Operation_formatter },
+        { field: 'Company', title: vm_gridhead.Company,width: 260,sortable:true },
+                { field: 'Address', title: vm_gridhead.Address,width: 360,sortable:true },
+                { field: 'Phone', title: vm_gridhead.Phone,width:80,fixed:true,sortable:true },
+
+                { field: 'Fax', title: vm_gridhead.Fax,width: 80,fixed:true,sortable:true  },
+                { field: 'Email', title: vm_gridhead.Email,width: 160,sortable:true },
+                 
+
+            ]
+        ],
+        view: detailview,
+        detailFormatter: function (index, row) {
+            return '<div style="padding:5px"><table id="tbDataAuthorityItem-' + index + '"></table></div>';
+        },
+        onExpandRow: function (index, row) {
+            $('#tbDataAuthorityItem-' + index).datagrid({
+                data: row.Departments,
+                singleSelect: true,
+                rownumbers: true,
+                loadMsg: loadMsg,
+                height: 'auto',  
+                columns: [
+                    [  
+                        { field: 'Name', title: vm_dialog2.DepartmentName, width: 200 },
+                        { field: 'UserName', title: vm_dialog2.Manage, width: 200 },
+                       
+                    ] 
+                ],
+                onResize: function () {
+                    $('#dgrid').datagrid('fixDetailRowHeight', index);
+                },
+                onLoadSuccess: function () {
+                    setTimeout(function () {
+                        $('#dgrid').datagrid('fixDetailRowHeight', index);
+                    },
+                        0);
+                },
+               // view: detailview,
+                //detailFormatter: function (index2, row2) {
+                   
+                //    var temp = [];
+                //    temp.push('<div style="padding:5px">');
+                //    temp.push('<table class="windowtable"  style="width:720px">');
+                //    if (row2.Users != null)
+                //    {
+                //        $.each(row2.Users, function (index3, val) {
+                //            temp.push('<tr>'); 
+                //            temp.push('<td class="nthTd" >' + val.StaffName + '</td>');
+                //            temp.push('</tr>');
+                //        });
+                //    }
+                   
+                    
+                    
+                     
+                //    temp.push('</table>');
+                //    temp.push('</div>');
+                //    return temp.join('');
+                //},
+               
+
+            });
+            $('#dgrid').datagrid('fixDetailRowHeight', index + index2);
+        }
+    });
+
+
+</script>
+
+
+    <script type="text/javascript">
+        var width = 760; //窗框宽度
+        var height = 400; //窗框高度
+        var tops = 1;
+        var left = 1;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/System/CompanyAction";
+        //新增相关****************************
+        function AddData() {
+            $('#dlg_addDialog').dialog({
+                title: $lang('Add'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+
+            });
+            type = "Add";
+          //  $('#fmAdd').form('clear'); //清除表单,所有的
+            $('#fmAdd').form('reset'); //清除表单
+            //$("#comEnable").textbox('setValue', 'true')
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) {
+                            var Id = 0;
+                            if (type == "Edit") {
+                                Id = $("#dgrid").datagrid("getSelections")[0].Id;
+                            }
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: Id,
+                                Company: $("#txt_Company").val(),
+                                Alias: $("#txt_Alias").val(),
+                                Phone: $("#txt_Phone").val(),
+                                Fax: $("#txt_Fax").val(), 
+                                Email: $("#txt_Email").val(),
+                                Registration: $("#txt_Registration").val(),
+                                GST: $("#txt_GST").val(),
+                                GSTReg: $("#txt_GSTReg").val(),
+                                AgreementNo: $("#txt_AgreementNo").val(), 
+                                License: $("#txt_License").val(),
+                                ReceiptNo: $("#txt_ReceiptNo").val(),
+                                Address: $("#txt_Address").val(),
+                            };
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid").datagrid("reload");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData(value, rowObject) {
+            
+                $('#fmAdd').form('load', {
+                    txt_Company: rowObject.Company,
+                    txt_Alias: rowObject.Alias,
+                    txt_Phone: rowObject.Phone,
+                    txt_Fax: rowObject.Fax,
+                    txt_Email: rowObject.Email,
+                    txt_Registration: rowObject.Registration,
+                    txt_GST: rowObject.GST,
+                    txt_GSTReg: rowObject.GSTReg, 
+                    txt_AgreementNo: rowObject.AgreementNo,
+                    txt_License: rowObject.License,
+                    txt_ReceiptNo: rowObject.ReceiptNo,
+                    txt_Address: rowObject.Address,  
+                });
+                type = "Edit";
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+          
+        } 
+        //************************************
+        //删除相关****************************
+        function DeleteData(value, rowObject) { 
+            type = "Delete"; 
+                var id = rowObject.Id;
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: type, Id: id },
+                                function (data, status) {
+                                    console.log(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid").datagrid("reload");
+                                        $("#dgrid").datagrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    }); 
+        }
+        //************************************
+        //查询相关****************************
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                Company: $('#searchName').val()
+            });
+        }
+        //************************************
+        //其它方法****************************
+        
+        //************************************ 
+         
+    </script>
+    @*//部门相关*@
+<script type="text/javascript">
+    
+    var type_group = "Add"; //区分修改还是新增，修改：Edit
+    var url_group = "/System/DepartmentAction";
+    //新增相关****************************
+    
+    function AddGroupData() {
+        var CheckID = $("#dgrid").datagrid("getSelections");
+        if (CheckID.length == 1) {
+            console.log(CheckID); 
+            type_group = "Add";
+            //  $('#fmAdd').form('clear'); //清除表单,所有的
+            $('#fmAdd2').form('reset'); //清除表单
+
+            $('#dlg_addDialog2').dialog({
+                title: $lang('Edit'),
+                width: 580,
+                height: height,
+                top: 1,
+                left: 1,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+            });
+        }
+        else {
+            if (CheckID.length == 0) {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+            else {
+                msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+            }
+        }
+    }
+    
+    //更新数据按钮
+    function Dialog_Save2() {
+        $('#fmAdd2').form('submit',
+            {
+                onSubmit: function () {
+                    var b = $(this).form('enableValidation').form('validate');
+                    if (b) {
+                        var Id = 0;
+                        var CheckID = $("#dgrid").datagrid("getSelections"); 
+                        //创建传递的参数
+                        var postdata = {
+                            Action: type_group,
+                            Id: Id,
+                            Name: $("#txt_DepartmentName").val(),
+                            CompanyId: rowObject.Id,
+                            UserId: $("#com_Manage").combobox('getValue'),
+                            UserName: $("#com_Manage").combobox('getText'),
+                        };    
+                        //发送异步请求到后台保存用户数据
+                        $.post(url_group,
+                            postdata,
+                            function (data, status) {
+                                if (status == "success" && data === "OK") {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                    $('#dlg_addDialog2').dialog('close');
+                                    $("#dgrid").datagrid("reload");
+                                } else {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                }
+                            });
+
+
+                    } else {
+                        msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                    }
+                }
+            });
+    }
+    //************************************
+    //修改相关****************************
+    function EditData2(value, rowObject) {
+      
+            $('#fmAdd').form('load', {
+                txt_Company: rowObject.Company,
+                txt_Alias: rowObject.Alias,
+                txt_Phone: rowObject.Phone,
+                txt_Fax: rowObject.Fax,
+                txt_Email: rowObject.Email,
+                txt_Registration: rowObject.Registration,
+                txt_GST: rowObject.GST,
+                txt_GSTReg: rowObject.GSTReg,
+                txt_AgreementNo: rowObject.AgreementNo,
+                txt_License: rowObject.License,
+                txt_ReceiptNo: rowObject.ReceiptNo,
+                txt_Address: rowObject.Address,
+            });
+            type = "Edit";
+
+            $('#dlg_addDialog').dialog({
+                title: $lang('Edit'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+            });
+      
+     
+    }
+    //************************************
+    //删除相关****************************
+    function DeleteData2(value, rowObject) { 
+        type = "Delete"; 
+            var id = rowObject.Id;
+            //发送异步请求删除数据
+            $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                function (DeleteSelect) {
+                    if (DeleteSelect) {
+                        $.post(url,
+                            { Action: type, Id: id },
+                            function (data, status) {
+                                console.log(status);
+                                if (status == "success" && data == "OK") {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                    $("#dgrid").datagrid("reload");
+                                    $("#dgrid").datagrid("clearSelections");
+                                } else {
+                                    msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                }
+                            });
+                    }
+                });
+        
+
+    }
+    //************************************
+    //明细表
+    function CompanydetailFormatter(index, row) {
+        return '<div style="padding:5px"><table id="tbDataAuthorityItemCompany-' + index + '"></table></div>';
+    }
+   
+</script>
+
+}
+}

@@ -1,0 +1,89 @@
+﻿@{
+    ViewBag.Title = "ERP Management System";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+ @section head_after{
+    <style> 
+   body
+{
+    font-family:Tahoma;
+    background-color:#000;
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
+    background:url('../../images/bg_body_ie.png') repeat-x;
+}
+     </style>
+ }
+<body>
+    <div id="loginWin" class="easyui-window" title="System Login" style="width:420px;height:250px;padding:30px 60px;"
+         minimizable="false" maximizable="false" resizable="false" collapsible="false" data-options="iconCls:'icon-group_key'">
+
+        <form id="loginFrom" method="post" data-options="novalidate:true">
+            <div style="margin-bottom:20px">
+                <input class="easyui-textbox" id="username" value="admin" name="username" style="width:100%" data-options="label:'User Name:',required:true,validType:'length[1,12]'">
+            </div>
+            <div style="margin-bottom:20px">
+                <input class="easyui-passwordbox" id="password" value="admin01" name="password" style="width:100%" data-options="label:'Password:',required:true,validType:'length[1,12]'">
+            </div>
+
+        </form>
+        <div style="text-align:center;padding:5px 5px">
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-lock'" onclick="Loginclick()" style="width:110px">Login</a>
+            &nbsp;&nbsp;
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-arrow_rotate_clockwise'" onclick="clearclick()" style="width:110px">Reset</a>
+        </div>
+    </div> 
+ 
+</body>
+
+@section body_after{
+    @*vm script*@
+   
+<script>
+ 
+
+    function Loginclick() {
+        var postdata = {
+            LoginId: $("#username").val(),
+            Password: $("#password").val(), 
+        };
+         
+        $.ajax({
+            type: "POST",
+            url: "/Home/LoginAction", 
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(postdata),
+
+            dataType: 'json',
+            success: function (msg) {
+                console.log(msg);
+                if (msg == "success")
+                {
+                    window.location.href = "/Home/Index";
+                }
+                else
+                {
+                    $.messager.alert('Login Failed', 'Login Failed！', 'error');
+                }
+                 
+
+            },
+            error: function () {
+                $.messager.alert('Login Failed', 'Login Failed！', 'error');
+            }
+        });
+
+         
+
+    }
+
+
+
+
+
+
+
+    function clearclick() {
+        $('#loginFrom').form('clear');
+    }
+</script>
+}

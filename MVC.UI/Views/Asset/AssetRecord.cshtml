@@ -1,0 +1,316 @@
+﻿@{
+    ViewBag.Title = "人员管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="User_dgrid" class="easyui-datagrid" fit="true" data-options="
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#User_toolbar',
+               remoteSort:true,
+               sortName:'Role',
+               sortOrder:'asc',
+               singleSelect:true,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post'
+               ">
+                <thead>
+                    <tr>
+                        <th data-options=" field:'UserName',width:100,sortable:true">{{Manage}}</th>
+                        <th data-options=" field:'Role',width:90,sortable:true">{{Role}}</th>
+                        <th data-options=" field:'CommissionType',width:90,sortable:false">{{CommissionType}}</th>
+                        <th data-options=" field:'Commission',width:90,sortable:false,formatter:NewCommission">{{Commission}}</th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="User_toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddUserData();">{{Add}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="EditUserData();">{{Edit}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeleteUserData();">{{Delete}}</a>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addUserDialog" class="easyui-dialog" title="" style="width:540px;height:340px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_SaveUser();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addUserDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd_User" method="post" data-options="novalidate:true">
+            <div id="tabAdd_User" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd_User" class="windowtable">
+
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_Manage">{{Manage}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Manage" name="com_Manage" style="width: 100%;" data-options="required:true,url:'/Base/GetCombox?type=User',
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+                                 editable:false,
+					            panelHeight:'auto'"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_Role">{{Role}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Role" name="com_Role" style="width: 100%;" data-options="url:'/Base/GetCombox?type=SysList&SysId=10&bind=text',
+                                         method:'get',
+					            valueField:'id',
+					            textField:'text',
+                                editable:false,
+					            panelHeight:'250px'"></select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_CommissionType">{{CommissionType}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_CommissionType" name="com_CommissionType" style="width: 100%;" data-options="required:true, editable:false">
+                                    <option value="Fixed">Fixed</option>
+                                    <option value="Percent" selected="selected">Percent</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Commission">{{Commission}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" id="txt_Commission" name="txt_Commission" precision="2" data-options="required:true,validType:'length[1,9]' " style="width:100%;" /></td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+         var projectId=@ViewBag.projectId;
+         var vm_Usergridhead = new Vue({
+             el: '#User_dgrid',
+             data: {
+                 Manage: $setLang("Manage Name", "管理人员"),
+                 Role: $setLang("Role", "角色"),
+                 CommissionType: $setLang("Commission Type", "分红方式"),
+                 Commission: $setLang("Commission", "分红"),
+
+             }
+         })
+         //toolbar按钮
+         var vm_Usertoolbar = new Vue({
+             el: '#User_toolbar',
+             data: {
+                 Add: $lang("Add"),
+                 Edit: $lang("Edit"),
+                 Delete: $lang("Delete"),
+             }
+         })
+         //增加修改模态框
+         var vm_Userdialog = new Vue({
+             el: '#dlg_addUserDialog',
+             data: {
+                 title: $lang("Basic Information"),
+                 Manage: $setLang("Manage Name", "管理人员"),
+                 Role: $setLang("Role", "角色"),
+                 CommissionType: $setLang("Commission Type", "分红方式"),
+                 Commission: $setLang("Commission", "分红"),
+
+
+             }
+         })
+
+         $("#User_dgrid").datagrid({
+                 url: '/Project/GetManage',
+                 queryParams: {
+                     'projectId': projectId,
+                 },
+         });
+         //-------------------------------------------------------------------------
+
+         var type_User = "Add"; //区分修改还是新增，修改：Edit
+         var url_User = "/Project/ManageAction";
+         //新增相关****************************
+         function AddUserData() {
+             $('#dlg_addUserDialog').dialog({
+                 title: $lang('Add'),
+                 width: 480,
+                 height: 320,
+                 closed: false,
+                 draggable: true,
+                 resizable: true,
+                 maximizable: true,
+                 collapsible: true,
+                 cache: false,
+                 modal: true
+
+             });
+             type_User = "Add";
+             $('#fmAdd_User').form('clear'); //清除表单,所有的
+             //$('#fmAdd').form('reset'); //清除表单
+             //$("#com_Sex").textbox('setValue', 'M');
+             //$("#com_Active").textbox('setValue', 'In Office');
+             //$("#com_Marital").textbox('setValue', 'Single');
+             //$("#txt_LoginId").textbox({ 'disabled': false });
+         }
+
+         //更新数据按钮
+         function Dialog_SaveUser() {
+             $('#fmAdd_User').form('submit',
+                 {
+                     onSubmit: function () {
+                         var b = $(this).form('enableValidation').form('validate');
+                         if (b) {
+                             var Id = 0;
+                             if (type_User == "Edit") {
+                                 Id = $("#User_dgrid").datagrid("getSelections")[0].Id;
+                             }
+
+                             //创建传递的参数
+                             var postdata = {
+                                 Action: type_User,
+                                 Id: Id,
+                                 ProjectId:projectId,
+                                 UserId: $("#com_Manage").combobox('getValue'),
+                                 UserName: $("#com_Manage").combobox('getText'),
+                                 Role: $("#com_Role").combobox('getValue'),
+                                 CommissionType: $("#com_CommissionType").combobox('getValue'),
+                                 Commission: $("#txt_Commission").val(),
+                             };
+                             //发送异步请求到后台保存用户数据
+                             $.post(url_User,
+                                 postdata,
+                                 function (data, status) {
+                                     if (status == "success" && data === "OK") {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                         $('#dlg_addUserDialog').dialog('close');
+                                         $("#User_dgrid").datagrid("reload");
+                                     } else {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                     }
+                                 });
+
+
+                         } else {
+                             msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                         }
+                     }
+                 });
+         }
+
+         //修改相关****************************
+         function EditUserData() {
+             var CheckID = $("#User_dgrid").datagrid("getSelections");
+             if (CheckID.length == 1) {
+                 // consolelog(CheckID);
+                 // $("#txt_LoginId").textbox({ 'disabled': true });
+                 $('#fmAdd_User').form('load', {
+                     com_Manage: CheckID[0].UserId,
+                     com_Role: CheckID[0].Role,
+                     com_CommissionType: CheckID[0].CommissionType,
+                     txt_Commission: CheckID[0].Commission,
+
+                 });
+
+                 type_User = "Edit";
+
+                 $('#dlg_addUserDialog').dialog({
+                     title: $lang('Edit'),
+                     width: 480,
+                     height: 320,
+                     closed: false,
+                     draggable: true,
+                     resizable: true,
+                     maximizable: true,
+                     collapsible: true,
+                     cache: false,
+                     modal: true
+                 });
+             }
+             else {
+                 if (CheckID.length == 0) {
+                     msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                 }
+                 else {
+                     msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                 }
+             }
+         }
+         //************************************
+         //删除相关****************************
+         function DeleteUserData() {
+             type = "Delete";
+             //获取到用户选定ID
+             var deleteID = $("#User_dgrid").datagrid("getSelections");
+
+             if (deleteID.length >= 1) {
+                 var id = deleteID[0].Id;
+                 //发送异步请求删除数据
+                 $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                     function (DeleteSelect) {
+                         if (DeleteSelect) {
+                             $.post(url_User,
+                                 { Action: type_User, Id: id },
+                                 function (data, status) {
+                                     consolelog(status);
+                                     if (status == "success" && data == "OK") {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                         $("#User_dgrid").datagrid("reload");
+                                         $("#User_dgrid").datagrid("clearSelections");
+                                     } else {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                     }
+                                 });
+                         }
+                     });
+             } else {
+                 msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+             }
+
+         }
+         //************************************
+         //其它方法****************************
+         function NewCommission(value, row, index) {
+             var str = "";
+             if (row.CommissionType=="Percent")
+             {
+                 str=value+"%";
+             }
+             else
+             {
+                 str=value;
+             }
+
+             return str;
+         }
+    </script>
+
+
+
+</body>
+
+
+
+
+
+

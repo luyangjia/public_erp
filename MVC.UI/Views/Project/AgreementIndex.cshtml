@@ -1,0 +1,797 @@
+﻿@{
+    ViewBag.Title = "项目报价";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section head_after{
+    <script type="text/javascript" src="@Url.Content("~/Content/EasyUI/datagrid-detailview.js")"></script>
+}
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 70px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+
+                                <td>
+                                    <label for="searchKey">{{ProjectName}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-textbox" type="text" id="searchKey" name="searchKey" style="width: 180px;" maxlength="50" />
+                                </td>
+
+
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" fit="true"></table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+         <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="EditData();">{{Edit}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="FailedData();">{{Failed}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-user',plain:true" onclick="ManagerUser();">{{ManagerUser}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-folder_page',plain:true" onclick="Plan();">{{Plan}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-money_dollar',plain:true" onclick="PaySchedule();">{{PaySchedule}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-treenotemain',plain:true" onclick="Quotation();">{{Agreement}}</a>
+    </div>
+
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div--> 
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+        <div data-options="iconCls:'icon-user'" onclick="ManagerUser();">{{ManagerUser}}</div>
+        <div data-options="iconCls:'icon-folder_page'" onclick="Plan();">{{Plan}}</div>
+        <div data-options="iconCls:'icon-money_dollar'" onclick="PaySchedule();">{{PaySchedule}}</div>
+        <div data-options="iconCls:'icon-treenotemain'" onclick="Quotation();">{{Agreement}}</div> 
+    </div>
+
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:720px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable">
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="txt_ProjectName">{{ProjectName}}：</label></td>
+                            <td class="nthTd" colspan="3"><input class="easyui-textbox" id="txt_ProjectName" name="txt_ProjectName" data-options="required:true,validType:'length[1,200]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_Client">{{Client}}：</label></td>
+                            <td class="nthTd" colspan="3">
+                                <select class="easyui-combobox" id="com_Client" name="com_Client" style="width: 100%;" data-options="url:'/Base/GetCombox?type=Client&first=null',
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+                                formatter: formatClient,
+                                onSelect:selectFunction,
+					            panelHeight:'300px'"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_Company">{{Company}}：</label></td>
+                            <td class="nthTd" style="width:230px">
+                                <select class="easyui-combobox" id="com_Company" name="com_Company" style="width: 100%;" data-options="url:'/Base/GetCombox?type=Company&first=null',
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+                                editable: false,
+					            panelHeight:'200px'"></select>
+                            </td>
+                            <td class="firstTd" style="width:130px"><label for="com_ProjectType">{{ProjectType}}：</label></td>
+                            <td class="nthTd" style="width:230px">
+                                <select class="easyui-combobox" id="com_ProjectType" name="com_ProjectType" style="width: 100%;" data-options="url:'/Base/GetCombox?type=SysList&SysId=7&bind=text&first=null',
+					            method:'get',
+					            valueField:'text',
+					            textField:'text',
+                                editable: false,
+					            panelHeight:'200px'"></select>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="firstTd"><label for="txt_BeginDate">{{BeginDate}}：</label></td>
+                            <td class="nthTd"><input class="easyui-datebox" id="txt_BeginDate" name="txt_BeginDate" data-options="validType:'length[0,10]' " style="width:230px;" /></td>
+                            <td class="firstTd"><label for="txt_EndDate">{{EndDate}}：</label></td>
+                            <td class="nthTd"><input class="easyui-datebox" id="txt_EndDate" name="txt_EndDate" data-options="validType:'length[0,10]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_Property">{{Property}}：</label></td>
+                            <td class="nthTd" style="width:230px">
+                                <select class="easyui-combobox" id="com_Property" name="com_Property" style="width: 100%;" data-options="url:'/Base/GetCombox?type=SysList&SysId=8&bind=tex&first=null',
+					            method:'get',
+					            valueField:'text',
+					            textField:'text',
+                                editable: false,
+					            panelHeight:'200px'"></select>
+                            </td>
+                            <td class="firstTd" style="width:130px"><label for="com_WalkIn">{{WalkIn}}：</label></td>
+                            <td class="nthTd" style="width:230px">
+                                <select class="easyui-combobox" id="com_WalkIn" name="com_WalkIn" style="width: 100%;" data-options="url:'/Base/GetCombox?type=SysList&SysId=9&bind=tex&first=null',
+					            method:'get',
+					            valueField:'text',
+					            textField:'text',
+                                editable: false,
+					            panelHeight:'200px'"></select>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td class="firstTd"><label for="txt_VisitDate">{{VisitDate}}：</label></td>
+                            <td class="nthTd" colspan="3"><input class="easyui-datebox" id="txt_VisitDate" name="txt_VisitDate" data-options="validType:'length[0,10]' " style="width:230px;" /></td>
+                        </tr>
+
+                        <tr>
+                            <td class="firstTd"><label for="txt_Blk">{{Blk}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Blk" name="txt_Blk" data-options="validType:'length[0,10]' " style="width:230px;" /></td>
+                            <td class="firstTd"><label for="txt_StreetName">{{StreetName}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_StreetName" name="txt_StreetName" data-options="validType:'length[0,50]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_BuildingName">{{BuildingName}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_BuildingName" name="txt_BuildingName" data-options="validType:'length[0,50]' " style="width:230px;" /></td>
+                            <td class="firstTd"><label for="txt_Unit">{{Unit}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Unit" name="txt_Unit" data-options="validType:'length[0,50]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_PostalCode">{{PostalCode}}：</label></td>
+                            <td class="nthTd" colspan="3"><input class="easyui-textbox" id="txt_PostalCode" name="txt_PostalCode" data-options="validType:'length[0,10]' " style="width:230px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Remark">{{Remark}}：</label></td>
+                            <td class="nthTd" colspan="3"><input class="easyui-textbox" id="txt_Remark" name="txt_Remark" data-options="multiline:true,validType:'length[0,500]' " style="width:100%;height:40px" /></td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    @*添加人员弹窗*@ @*添加工作计划弹窗*@ @*添加项目协议*@@*添加项目付款计划*@
+    <div id="dlg_addDialog2" class="easyui-dialog" title="" style="width:720px;height:370px;" closed="true">
+    </div>
+
+
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                Key: $setLang("Key Value", "关键字"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                ProjectType: $setLang("Project Type", "项目类别"),
+                Company: $setLang("Company", "公司名称"),
+                BeginDate: $setLang("Begin Date", "开始日期"),
+                EndDate: $setLang("End Date", "结束日期"),
+                Property: $setLang("Type Of Property", "性质"),
+                WalkIn: $setLang("Type Of Walk-In", "预定类型"),
+                VisitDate: $setLang("Visit Date", "来访日期"),
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Status: $setLang("Status", "状态"),
+                Remark: $setLang("Remark", "备注"),
+                Manager: $setLang("Manager", "经理"),
+                TotalAmount: $setLang("Total Amount", "总金额"),
+                ModifiedDate: $setLang("Modified Date", "最后修改时间"),
+
+                BeginTime: $setLang("Begin Time", "开始时间"),
+                EndTime: $setLang("End Time", "结束时间"),
+                Description: $setLang("Description", "计划内容"),
+                UserName: $setLang("User Name", "相关人员"),
+                
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+                Failed: $setLang("Project Failed", "项目失败"),
+                ManagerUser: $setLang("Manager User", "管理用户"),
+                Plan: $setLang("Project Plan", "项目计划"),
+                Quotation: $setLang("Project Quotation", "项目报价"),
+                Agreement: $setLang("Project Agreement", "项目协议"),
+                PaySchedule: $setLang("Pay Schedule", "付款计划"),
+                 
+
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+                ManagerUser: $setLang("Manager User", "管理用户"),
+                Plan: $setLang("Project Plan", "项目计划"),
+                Quotation: $setLang("Project Quotation", "项目报价"),
+                Agreement: $setLang("Project Agreement", "项目协议"),
+                PaySchedule: $setLang("Pay Schedule", "付款计划"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                ProjectType: $setLang("Project Type", "项目类别"),
+                Company: $setLang("Company", "公司名称"),
+                BeginDate: $setLang("Begin Date", "开始日期"),
+                EndDate: $setLang("End Date", "结束日期"),
+                Property: $setLang("Type Of Property", "性质"),
+                WalkIn: $setLang("Type Of Walk-In", "预定类型"),
+                VisitDate: $setLang("Visit Date", "来访日期"),
+
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Status: $setLang("Status", "状态"),
+                Remark: $setLang("Remark", "备注"),
+            }
+        })
+        //添加人员弹框
+        var vm_dialog2 = new Vue({
+            el: '#dlg_addDialog2',
+            data: {
+                title: $lang("Basic Information"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+
+            }
+        })
+        //工作计划弹框
+        var vm_dialog3 = new Vue({
+            el: '#dlg_addDialog3',
+            data: {
+                title: $lang("Basic Information"),
+                ProjectName: $setLang("Project Name", "项目名称"),
+                Client: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+
+            }
+        })
+    </script>
+    <script type="text/javascript">
+
+        $('#dgrid').datagrid({
+            url: '/Project/AgreementSearch',
+            rownumbers: true,
+            pagination: true,
+            pagenumber: 1,
+            pageSize: pageSize,
+            pageList: pageList,
+            toolbar: '#toolbar',
+            remoteSort: true,
+            sortName: 'CreateDate',
+            sortOrder: 'desc',
+            singleSelect: true,
+            nowrap: false,
+            loadMsg: loadMsg,
+            striped: true,
+            method: 'post',
+            columns: [
+                [
+                    { field: 'ProjectName', title: vm_gridhead.ProjectName, width: 250 },
+                    { field: 'CompanyName', title: vm_gridhead.Company, width: 280 },
+                    { field: 'ClientName', title: vm_gridhead.Client, width: 100 },
+                    { field: 'Leader', title: vm_gridhead.Manager, width: 100 },
+                    { field: 'Leader', title: vm_gridhead.TotalAmount, width: 80 },
+                    {
+                        field: 'CreateDate', title: vm_gridhead.ModifiedDate, formatter: function (value, row, index) {
+                            var str = "";
+                            if (value != null)
+                                str = jsonDateTimeFormat(value);
+                            return str;
+                        }, width: 110
+                    },
+
+                ]
+            ],
+            view: detailview,
+            detailFormatter: function (index, row) {
+                return '<div style="padding:5px"><table id="tbDataAuthorityItem-' + index + '"></table></div>';
+            },
+            onExpandRow: function (index, row) {
+                $('#tbDataAuthorityItem-' + index).datagrid({
+                    url: '/Project/ProjectPlanSearch',
+                    singleSelect: true,
+                    rownumbers: true,
+                    loadMsg: loadMsg,
+                    height: 'auto',
+                    queryParams: {
+                        'projectId': row.Id,
+                    },
+                    columns: [
+                        [
+                            {
+                                field: 'BeginTime', title: vm_gridhead.BeginTime, width: 120, formatter: function (value, row, index) {
+                                    var str = "";
+                                    if (value != null)
+                                        str = jsonDateTimeFormat(value);
+                                    return str;
+                                }
+                            },
+                            {
+                                field: 'EndTime', title: vm_gridhead.EndTime, width: 120, formatter: function (value, row, index) {
+                                    var str = "";
+                                    if (value != null)
+                                        str = jsonDateTimeFormat(value);
+                                    return str;
+                                }
+                            },
+                            { field: 'Description', title: vm_gridhead.Description  },
+                            { field: 'UserName', title: vm_gridhead.UserName, width: 100 },
+                            { field: 'Status', title: vm_gridhead.Status, width: 70,formatter:function (value, row, index) {
+                               var html = "<img src='../images/cross.png' />";
+                               if (value == 1)
+                                 html = "<img src='../images/ok.png' />"; 
+                                 return html;
+                        } }
+                        ]
+                    ],
+                    onResize: function () {
+                        $('#dgrid').datagrid('fixDetailRowHeight', index);
+                    },
+                    onLoadSuccess: function () {
+                        setTimeout(function () {
+                            $('#dgrid').datagrid('fixDetailRowHeight', index);
+                        },
+                            0);
+                    }
+                });
+                $('#dgrid').datagrid('fixDetailRowHeight', index);
+            },
+            onRowContextMenu: function (e, rowIndex, rowData) { //右键时触发事件
+                //三个参数：e里面的内容很多，真心不明白，rowIndex就是当前点击时所在行的索引，rowData当前行的数据
+                e.preventDefault(); //阻止浏览器捕获右键事件
+                $(this).datagrid("clearSelections"); //取消所有选中项
+                $(this).datagrid("selectRow", rowIndex); //根据索引选中该行
+                $('#menu').menu('show', {
+                    //显示右键菜单
+                    left: e.pageX,//在鼠标点击处显示菜单
+                    top: e.pageY
+                });
+            }
+        });
+
+
+    </script>
+
+
+    <script type="text/javascript">
+        var width = 820; //窗框宽度
+        var height = 480; //窗框高度
+        var tops = 1;
+        var left = 1;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/Project/QuotationAction";
+        //新增相关****************************
+        function AddData() {
+            $('#dlg_addDialog').dialog({
+                title: $lang('Add'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+
+            });
+            type = "Add";
+            $('#fmAdd').form('clear'); //清除表单,所有的
+            //$('#fmAdd').form('reset'); //清除表单
+            //$("#com_Sex").textbox('setValue', 'M');
+            //$("#com_Active").textbox('setValue', 'In Office');
+            //$("#com_Marital").textbox('setValue', 'Single');
+            //$("#txt_LoginId").textbox({ 'disabled': false });
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) {
+                            var Id = 0;
+                            if (type == "Edit") {
+                                Id = $("#dgrid").datagrid("getSelections")[0].Id;
+                            }
+
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: Id,
+                                ProjectName: $("#txt_ProjectName").val(),
+                                CompanyId: $("#com_Company").combobox('getValue'),
+                                ClientId: $("#com_Client").combobox('getValue'),
+                                ProjectType: $("#com_ProjectType").combobox('getValue'),
+                                Property: $("#com_Property").combobox('getValue'),
+                                Towi: $("#com_WalkIn").combobox('getValue'),
+                                BeginDate: $("#txt_BeginDate").val(),
+                                EndDate: $("#txt_EndDate").val(),
+                                VisitDate: $("#txt_VisitDate").val(),
+                                Blk: $("#txt_Blk").val(),
+                                StreetName: $("#txt_StreetName").val(),
+                                BuildingName: $("#txt_BuildingName").val(),
+                                Unit: $("#txt_Unit").val(),
+                                PostalCode: $("#txt_PostalCode").val(),
+                                Remark: $("#txt_Remark").val()
+
+
+                            };
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid").datagrid("reload");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData() {
+            var CheckID = $("#dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                // consolelog(CheckID);
+                // $("#txt_LoginId").textbox({ 'disabled': true });
+                $('#fmAdd').form('load', {
+                    txt_ProjectName: CheckID[0].ProjectName,
+                    com_Company: CheckID[0].CompanyId,
+                    com_Client: CheckID[0].ClientId,
+                    com_ProjectType: CheckID[0].ProjectType,
+                    com_Property: CheckID[0].Property,
+                    com_WalkIn: CheckID[0].Towi,
+                    txt_BeginDate: CheckID[0].BeginDate,
+                    txt_EndDate: CheckID[0].EndDate,
+                    txt_VisitDate: CheckID[0].VisitDate,
+                    txt_Blk: CheckID[0].Blk,
+                    txt_StreetName: CheckID[0].StreetName,
+                    txt_BuildingName: CheckID[0].BuildingName,
+                    txt_Unit: CheckID[0].Unit,
+                    txt_PostalCode: CheckID[0].PostalCode,
+                    txt_Remark: CheckID[0].Remark,
+
+
+                });
+
+                type = "Edit";
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+        //删除相关****************************
+        function DeleteData() {
+            type = "Delete";
+            //获取到用户选定ID
+            var deleteID = $("#dgrid").datagrid("getSelections");
+
+            if (deleteID.length >= 1) {
+                var id = deleteID[0].Id;
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: type, Id: id },
+                                function (data, status) {
+                                    consolelog(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid").datagrid("reload");
+                                        $("#dgrid").datagrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+
+        }
+        //************************************
+        //查询相关****************************
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                Value: $('#searchKey').val(),
+            });
+        }
+        //************************************
+        //其它方法****************************
+        function CreateDateFormat(value, row, index) {
+            var str = "";
+            if (value != null)
+                str = jsonDateTimeFormat(value);
+            return str;
+        }
+        function formatClient(row) {
+            var Blk = "";
+            if (row.Blk != "" && row.Blk != null) {
+                Blk = row.Blk;
+            }
+            var StreetName = "";
+            if (row.StreetName != "" && row.StreetName != null) {
+                StreetName = row.StreetName;
+            }
+            var Unit = "";
+            if (row.Unit != "" && row.Unit != null) {
+                Unit = row.Unit;
+            }
+            var BuildingName = "";
+            if (row.BuildingName != "" && row.BuildingName != null) {
+                BuildingName = row.BuildingName;
+            }
+            var phone = "";
+            if (row.Phone != "" && row.Phone != null) {
+                phone = row.Phone;
+            }
+            if (row.Mobile != "" && row.Mobile != null) {
+                phone = row.Mobile;
+            }
+
+
+            var s = '<span style="font-weight:bold">' + row.text + '</span><br/>' +
+                    '<span style="color:#888">' + Blk + ' ' + StreetName + ' ' + Unit + ' ' + BuildingName + ' ' + phone + '</span>';
+            return s;
+        }
+        function selectFunction(row) {
+            // console.log(row);
+            $("#txt_Blk").textbox('setValue', row.Blk);
+            $("#txt_StreetName").textbox('setValue', row.StreetName);
+            $("#txt_BuildingName").textbox('setValue', row.BuildingName);
+            $("#txt_Unit").textbox('setValue', row.Unit);
+            $("#txt_PostalCode").textbox('setValue', row.PostalCode);
+
+        }
+        //************************************
+    </script>
+    @*添加人员相关脚本*@
+    <script type="text/javascript">
+        //项目人员管理****************************
+        function ManagerUser() {
+            var CheckID = $("#dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                // consolelog(CheckID);
+                // $("#txt_LoginId").textbox({ 'disabled': true });
+                var projectId = CheckID[0].Id;
+
+                $('#dlg_addDialog2').dialog({
+                    title: $setLang("Manager User", "管理用户") + "   【" + CheckID[0].ProjectName + "】",
+                    width: 720,
+                    height: 420,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    fit: false,
+                    href: '/Project/ManageUser?projectId=' + projectId,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+        //项目计划****************************
+        function Plan() {
+            var CheckID = $("#dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                // consolelog(CheckID);
+                // $("#txt_LoginId").textbox({ 'disabled': true });
+                var projectId = CheckID[0].Id;
+
+                $('#dlg_addDialog2').dialog({
+                    title: $setLang("Project Plan", "项目计划") + "   【" + CheckID[0].ProjectName + "】",
+                    width: 720,
+                    height: 420,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    fit: false,
+                    href: '/Project/ProjectPlan?projectId=' + projectId,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+        //协议****************************
+        function Quotation() {
+            var CheckID = $("#dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                // consolelog(CheckID);
+                // $("#txt_LoginId").textbox({ 'disabled': true });
+                var projectId = CheckID[0].Id;
+
+                $('#dlg_addDialog2').dialog({
+                    title: $setLang("Project Quotation", "项目协议") + "   【" + CheckID[0].ProjectName + "】",
+                    width: 720,
+                    height: 420,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    fit: true,
+                    href: '/Project/ProjectQuotation?projectId=' + projectId,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+        //付款计划****************************
+        function PaySchedule() {
+            var CheckID = $("#dgrid").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                // consolelog(CheckID);
+                // $("#txt_LoginId").textbox({ 'disabled': true });
+                var projectId = CheckID[0].Id;
+
+                $('#dlg_addDialog2').dialog({
+                    title: $setLang("Pay Schedule", "付款计划") + "   【" + CheckID[0].ProjectName + "】",
+                    width: 720,
+                    height: 420,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    fit: false,
+                    href: '/Project/PaySchedule?projectId=' + projectId,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+    </script>
+    @*树节点操作*@
+    <script>
+        function dd() {
+
+        }
+    </script>
+}

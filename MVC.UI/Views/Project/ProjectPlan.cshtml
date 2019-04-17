@@ -1,0 +1,330 @@
+﻿@{
+    ViewBag.Title = "项目计划";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="Plan_dgrid" class="easyui-datagrid" fit="true" data-options="
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#Plan_toolbar',
+               remoteSort:true,
+               sortName:'BeginTime',
+               sortOrder:'asc',
+               singleSelect:true,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post'
+               ">
+                <thead>
+                    <tr>
+                        <th data-options=" field:'BeginTime',width:90,sortable:false,formatter:CreateDateFormat">{{BeginTime}}</th>
+                        <th data-options=" field:'EndTime',width:90,sortable:false,formatter:CreateDateFormat">{{EndTime}}</th>
+                        <th data-options=" field:'Description',width:180,sortable:false">{{Description}}</th>
+                        <th data-options=" field:'UserName',width:90,sortable:false">{{UserName}}</th>
+                        <th data-options=" field:'Status',width:70,formatter: Statusformater">
+                            {{Status}}
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="Plan_toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddPlanData();">{{Add}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="EditPlanData();">{{Edit}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeletePlanData();">{{Delete}}</a>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addPlanDialog" class="easyui-dialog" title="" style="width:740px;height:340px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_SavePlan();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addPlanDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd_Plan" method="post" data-options="novalidate:true">
+            <div id="tabAdd_Plan" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd_Plan" class="windowtable">
+
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="date_BeginTime">{{BeginTime}}：</label></td>
+                            <td class="nthTd" style="width:360px"><input class="easyui-datetimebox" id="date_BeginTime" name="date_BeginTime" data-options="validType:'length[0,25]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="date_EndTime">{{EndTime}}：</label></td>
+                            <td class="nthTd"><input class="easyui-datetimebox" id="date_EndTime" name="date_EndTime"  data-options="validType:'length[0,25]' " style="width:100%;" /></td>
+                        </tr>
+                         
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="com_UserName">{{UserName}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_UserName" name="com_UserName" style="width: 100%;" data-options="required:true,url:'/Base/GetCombox?type=User',
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+                                 editable:false,
+                                 multiple:true,
+					            panelHeight:'auto'"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Description">{{Description}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Description" name="txt_Description"  data-options="required:true,validType:'length[1,2500]' " style="width:100%;" /></td>
+                        </tr>
+
+                        <tr>
+                            <td class="firstTd" style="width:130px"><label for="chk_Status">{{Status}}：</label></td>
+                            <td class="nthTd"><input type="checkbox" id="chk_Status" name="chk_Status" /></td>
+                        </tr>
+                       
+
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+         var projectId=@ViewBag.projectId;
+        var vm_Plangridhead = new Vue({
+            el: '#Plan_dgrid',
+             data: {
+                 BeginTime: $setLang("Begin Time", "开始时间"),
+                 EndTime: $setLang("End Time", "结束时间"),
+                 Description: $setLang("Description", "计划内容"),
+                 UserName: $setLang("User Name", "相关人员"),
+                 Status: $setLang("Status", "状态"),
+             }
+         })
+         //toolbar按钮
+        var vm_Plantoolbar = new Vue({
+            el: '#Plan_toolbar',
+             data: {
+                 Add: $lang("Add"),
+                 Edit: $lang("Edit"),
+                 Delete: $lang("Delete"),
+             }
+         })
+         //增加修改模态框
+        var vm_Plandialog = new Vue({
+             el: '#dlg_addPlanDialog',
+             data: {
+                 title: $lang("Basic Information"),
+                 BeginTime: $setLang("Begin Time", "开始时间"),
+                 EndTime: $setLang("End Time", "结束时间"),
+                 Description: $setLang("Description", "计划内容"),
+                 UserName: $setLang("User Name", "相关人员"),
+                 Status: $setLang("Status", "状态"),
+
+
+             }
+         })
+
+        $("#Plan_dgrid").datagrid({
+            url: '/Project/ProjectPlanSearch',
+                 queryParams: {
+                     'projectId': projectId,
+                 },
+         });
+         //-------------------------------------------------------------------------
+
+        var type_Plan = "Add"; //区分修改还是新增，修改：Edit
+        var url_Plan = "/Project/ProjectPlanAction";
+         //新增相关****************************
+        function AddPlanData() {
+            $('#dlg_addPlanDialog').dialog({
+                 title: $lang('Add'),
+                 width: 480,
+                 height: 320,
+                 closed: false,
+                 draggable: true,
+                 resizable: true,
+                 maximizable: true,
+                 collapsible: true,
+                 cache: false,
+                 modal: true
+
+             });
+            type_Plan = "Add";
+            $('#fmAdd_Plan').form('clear'); //清除表单,所有的
+             //$('#fmAdd').form('reset'); //清除表单
+             //$("#com_Sex").textbox('setValue', 'M');
+             //$("#com_Active").textbox('setValue', 'In Office');
+             //$("#com_Marital").textbox('setValue', 'Single');
+             //$("#txt_LoginId").textbox({ 'disabled': false });
+         }
+
+         //更新数据按钮
+        function Dialog_SavePlan() {
+             $('#fmAdd_Plan').form('submit',
+                 {
+                     onSubmit: function () {
+                         var b = $(this).form('enableValidation').form('validate');
+                         if (b) {
+                             var Id = 0;
+                             if (type_Plan == "Edit") {
+                                 Id = $("#Plan_dgrid").datagrid("getSelections")[0].Id;
+                             }
+
+                             var active = 0;
+                             var chkvalue = $('#chk_Status').is(':checked');
+                             if (chkvalue == true) {
+                                 active = 1;
+                             }
+
+                             //创建传递的参数
+                             var postdata = {
+                                 Action: type_Plan,
+                                 Id: Id,
+                                 ProjectId:projectId,
+                                 UserId: $("#com_UserName").combobox('getValues').join(","),
+                                 UserName: $("#com_UserName").combobox('getText'), 
+                                 BeginTime: $("#date_BeginTime").val(),
+                                 EndTime: $("#date_EndTime").val(),
+                                 Description: $("#txt_Description").val(),
+                                 Status: active, 
+                             };
+                           //  console.log(postdata);
+                             //发送异步请求到后台保存用户数据
+                             $.post(url_Plan,
+                                 postdata,
+                                 function (data, status) {
+                                     if (status == "success" && data === "OK") {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                         $('#dlg_addPlanDialog').dialog('close');
+                                         $("#Plan_dgrid").datagrid("reload");
+                                     } else {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                     }
+                                 });
+
+
+                         } else {
+                             msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                         }
+                     }
+                 });
+         }
+
+         //修改相关****************************
+        function EditPlanData() {
+            var CheckID = $("#Plan_dgrid").datagrid("getSelections");
+             if (CheckID.length == 1) {
+                   consolelog(CheckID);
+                 // $("#txt_LoginId").textbox({ 'disabled': true });
+                 $('#fmAdd_Plan').form('load', {
+                     //com_UserName: CheckID[0].UserId,
+                     com_UserName: CheckID[0].UserId.split(','), 
+                     date_BeginTime: CheckID[0].BeginTime,
+                     date_EndTime: CheckID[0].EndTime,
+                     txt_Description: CheckID[0].Description,
+
+                 });
+                 var active = CheckID[0].Status;
+                 if (active == 1) {
+                     $("input[name='chk_Status']").prop("checked", true);
+                 }
+                 else {
+                     $("input[name='chk_Status']").prop("checked", false);
+                 }
+
+                 type_Plan = "Edit";
+
+                 $('#dlg_addPlanDialog').dialog({
+                     title: $lang('Edit'),
+                     width: 480,
+                     height: 320,
+                     closed: false,
+                     draggable: true,
+                     resizable: true,
+                     maximizable: true,
+                     collapsible: true,
+                     cache: false,
+                     modal: true
+                 });
+             }
+             else {
+                 if (CheckID.length == 0) {
+                     msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                 }
+                 else {
+                     msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                 }
+             }
+         }
+         //************************************
+         //删除相关****************************
+        function DeletePlanData() {
+            type_Plan = "Delete";
+             //获取到用户选定ID
+             var deleteID = $("#Plan_dgrid").datagrid("getSelections");
+
+             if (deleteID.length >= 1) {
+                 var id = deleteID[0].Id;
+                 //发送异步请求删除数据
+                 $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                     function (DeleteSelect) {
+                         if (DeleteSelect) {
+                             $.post(url_Plan,
+                                 { Action: type_Plan, Id: id },
+                                 function (data, status) {
+                                     consolelog(status);
+                                     if (status == "success" && data == "OK") {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                         $("#Plan_dgrid").datagrid("reload");
+                                         $("#Plan_dgrid").datagrid("clearSelections");
+                                     } else {
+                                         msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                     }
+                                 });
+                         }
+                     });
+             } else {
+                 msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+             }
+
+         }
+         //************************************
+        function Statusformater(value, row, index) {
+            var html = "<img src='../images/cross.png' />";
+            if (value == 1)
+                html = "<img src='../images/ok.png' />";
+
+            return html;
+        }
+        function CreateDateFormat(value, row, index) {
+            var str = "";
+            if (value != null)
+                str = jsonDateTimeFormat(value);
+            return str;
+        }
+    </script>
+
+
+
+</body>
+
+
+
+
+
+

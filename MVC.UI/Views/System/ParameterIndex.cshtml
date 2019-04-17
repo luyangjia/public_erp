@@ -1,0 +1,349 @@
+﻿@{
+    ViewBag.Title = "参数管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div  data-options="region:'west',split:true" style="padding: 1px; width: 320px">
+            <!-------------------------------详细信息展示表格1----------------------------------->
+            <table id="dgrid1" class="easyui-datagrid" fit="true" v-bind:title="title1" idfield="Id" data-options="
+                url: '/System/GetSys',
+                rownumbers:true,
+                pagination:false,
+                pagenumber:1,
+                remotesort:false,
+                multisort:true,
+                singleSelect:true,
+                checkOnSelect:true,
+                selectOncheck:true,
+                nowrap:false,
+                loadMsg: loadMsg,
+                striped : true,
+                method:'post',
+                onClickRow: function (index, row) {
+                      doFilter(row.Id);
+
+                   },
+                   ">
+                <thead>
+                    <tr>
+                        <th data-options=" field:'Name',width:130">{{SysName}}</th>
+                        <th data-options=" field:'Remark',width:130">{{Remark}}</th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid2" class="easyui-treegrid" fit="true" v-bind:title="title2" data-options="
+               url: '/System/GetSysList',
+               rownumbers:true,
+               toolbar:'#toolbar',
+               treeField: 'Name',
+               loadMsg: loadMsg,
+               striped : true,
+               method:'post',
+               idField: 'Id',
+              onContextMenu: onTreeContextMenu
+               ">
+                <thead>
+                    <tr>
+                        <th data-options=" field:'Name',width:250">{{SysListName}}</th>
+                        <th data-options=" field:'Listorder',width:70">{{Listorder}}</th>
+                        <th data-options=" field:'Rank',width:70">{{Rank}}</th>
+                        <th data-options=" field:'Remark',width:250">{{Remark}}</th>
+
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Add}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" onclick="EditData();">{{Edit}}</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-delete',plain:true" onclick="DeleteData();">{{Delete}}</a>
+    </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+        <div data-options="iconCls:'icon-add'" onclick="AddData();">{{Add}}</div>
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:620px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable">
+                        <tr>
+                            <td class="firstTd"><label for="com_Parent">{{Parent}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combotree" id="com_Parent" name="com_Parent" style="width:350px;" ></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Name">{{SysListName}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Name" name="txt_Name" data-options="required:true,validType:'length[1,50]' " style="width:350px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="num_Listorder">{{Listorder}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" precision="2" id="num_Listorder" name="num_Listorder" data-options="required:true,validType:'length[0,10]' " value="0"  style="width:350px;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label for="txt_Remark">{{Remark}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Remark" name="txt_Remark" data-options="validType:'length[1,250]' " style="width:350px;" /></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </form>
+    </div>
+
+     
+
+</body>
+
+@section body_after{
+<script>
+    //所有VM多在这里
+    //grid1表头
+    var vm_gridhead = new Vue({
+        el: '#tb',
+        data: {
+            title1: $setLang("Parameters", "参数"),
+            title2: $setLang("Parameters List", "参数明细"),
+            SysName: $setLang("Name", "名称"),
+            SysListName: $setLang("Name", "名称"),
+            Parent: $setLang("Parent Node", "父级节点"),
+            Listorder: $setLang("Listorder", "排序"), 
+            Rank: $setLang("Rank", "级别"),
+            Remark: $setLang("Remark", "备注"),
+        }
+    })
+    //toolbar按钮
+    var vm_toolbar = new Vue({
+        el: '#toolbar',
+        data: {
+            Add: $lang("Add"),
+            Edit: $lang("Edit"),
+            Delete: $lang("Delete"),
+        }
+    })
+    //menu菜单
+    var vm_menu = new Vue({
+        el: '#menu',
+        data: {
+            Add: $lang("Add"),
+            Edit: $lang("Edit"),
+            Delete: $lang("Delete"),
+        }
+    })
+    //增加修改模态框
+    var vm_dialog = new Vue({
+        el: '#dlg_addDialog',
+        data: {
+            title: $lang("Basic Information"),
+            SysListName: $setLang("Name", "名称"),
+            Parent: $setLang("Parent Node", "父级节点"),
+            Listorder: $setLang("Listorder", "排序"),
+            Remark: $setLang("Remark", "备注"),
+        }
+    })
+</script>
+ 
+    <script type="text/javascript"> 
+        var width = 520; //窗框宽度
+        var height = 280; //窗框高度
+        var top = $(document).scrollTop() + ($(window).height() - 360) * 0.5;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/System/SysListAction";
+        var SId = "";  //选中的ID，全局变量 
+        //新增相关****************************
+        function AddData() {
+            var CheckID = $("#dgrid1").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                $('#com_Parent').combotree({
+                    url: '/Base/GetCombox?type=SysList&SysId=' + SId + "&first=null",
+                });
+                var selectId = $("#dgrid2").datagrid("getSelections"); 
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Add'),
+                    width: width,
+                    height: height,
+                    top: top,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+
+                });
+                type = "Add";
+                //  $('#fmAdd').form('clear'); //清除表单,所有的
+                $('#fmAdd').form('reset'); //清除表单
+                if (selectId.length==1)
+                    $("#com_Parent").textbox('setValue', selectId[0].Id)
+            }
+            else
+            { 
+              msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning'); 
+            }
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) {
+                            var Id = 0;
+                            if (type == "Edit") {
+                                Id = $("#dgrid2").datagrid("getSelections")[0].Id;
+                            }
+                            var parentvalue = "";
+                            var parentid = $("#com_Parent").combobox('getValue');
+                            if (parentid != "0")
+                            {
+                                parentvalue = parentid;
+                            }
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: Id,
+                                SysId: SId,
+                                Name: $("#txt_Name").val(),
+                                Listorder: $("#num_Listorder").val(),
+                                Remark: $("#txt_Remark").val(), 
+                                ParentId: parentvalue,
+                            };
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid2").treegrid("reload"); 
+                                        $('#dgrid2').datagrid('clearSelections'); //取消选中的行
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData() {
+            var CheckID = $("#dgrid2").datagrid("getSelections");
+            if (CheckID.length == 1) {
+                $('#com_Parent').combotree({
+                    url: '/System/GetSysList?SysId=' + SId + "&first=null",
+                });
+
+                $('#fmAdd').form('load', {
+                    txt_Name: CheckID[0].Name, 
+                    num_Listorder: CheckID[0].Listorder,
+                    txt_Remark: CheckID[0].Remark,
+                    com_Parent: CheckID[0].ParentId,
+                    
+                });
+                type = "Edit";
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: top,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+            }
+            else {
+                if (CheckID.length == 0) {
+                    msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+                }
+                else {
+                    msgShow($lang('The System Prompt'), $lang('You Can Only Selected One Data'), 'warning');
+                }
+            }
+        }
+        //************************************
+        //删除相关****************************
+        function DeleteData() {
+            console.log("Delete");
+            type = "Delete";
+
+            //获取到用户选定ID
+            var deleteID = $("#dgrid2").datagrid("getSelections");
+
+            if (deleteID.length >= 1) {
+                var id = deleteID[0].Id;
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: type, Id: id },
+                                function (data, status) {
+                                    console.log(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid2").treegrid("reload");
+                                        $("#dgrid2").treegrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                msgShow($lang('The System Prompt'), $lang('Please Selected Data'), 'warning');
+            }
+
+        }
+        //************************************
+        //查询相关****************************  
+        function doFilter(sid) {
+            SId = sid;
+            $('#dgrid2').treegrid('reload', {
+                SysId: sid
+            });
+        }
+     
+
+    </script>
+}

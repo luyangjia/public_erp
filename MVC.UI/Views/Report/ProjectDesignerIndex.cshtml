@@ -1,0 +1,224 @@
+﻿@{
+    ViewBag.Title = "客户管理";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section head_after{ 
+    @System.Web.Optimization.Scripts.Render("~/Content/eChart")
+    <style type="text/css">
+        #chartDiv, #container {
+            height: 400px;
+            width: 100%;
+            overflow: hidden;
+        }
+    </style>
+
+}
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 70px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="0" cellpadding="0">
+                            <tr>
+
+                                <td>
+                                    <label for="searchKey">{{Key}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-textbox" type="text" id="searchKey" name="searchKey" style="width: 180px;" maxlength="50" />
+                                </td>
+
+
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <div class="flot-chart m-b-xl">
+                <div id="container" class="flot-chart-content"></div>
+            </div>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    
+</body> 
+@section body_after{
+ 
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"),
+                Key: $setLang("Key Value", "关键字"),
+                LoginId: $setLang("Login ID", "登录名称"),
+                Password: $setLang("Password", "密码"),
+                ClientName: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+                Race: $setLang("Race", "种族"),
+                Nric: $setLang("Nric", "身份证号"),
+                Sectors: $setLang("Sectors", "领域"),
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Enable: $setLang("Enable", "状态"),
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"),
+                LoginId: $setLang("Login ID", "登录名称"),
+                Password: $setLang("Password", "密码"),
+                ClientName: $setLang("Client Name", "客户姓名"),
+                Company: $setLang("Company", "公司名称"),
+                Race: $setLang("Race", "种族"),
+                Nric: $setLang("Nric", "身份证号"),
+                Sectors: $setLang("Sectors", "领域"),
+                Phone: $setLang("Phone", "电话"),
+                Mobile: $setLang("Mobile", "手机号"),
+                Email: $setLang("Email", "邮箱地址"),
+                Fax: $setLang("Fax", "传真"),
+                Blk: $setLang("Blk", "门牌"),
+                StreetName: $setLang("Street Name", "街道名"),
+                BuildingName: $setLang("Building Name", "建筑名"),
+                Unit: $setLang("Unit #", "单元"),
+                PostalCode: $setLang("Postal Code", "邮政编码"),
+                Enable: $setLang("Enable", "状态"),
+            }
+        })
+    </script>
+    <script type="text/javascript">
+        GetMap();
+        function GetMap() {
+
+            //中间内容第二行图表
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('container'),'macarons');
+       
+            option = {
+                title: {
+                    text: 'Agreement Amount For 2018',
+                    subtext: ''
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['HOME GUIDE DESIGN & CONTRACTS PTE. LTD', 'HG INTERIOR DESIGN PTE. LTD']
+                },
+                toolbox: {
+                    show: false,
+                    feature: {
+                        dataZoom: {
+                            yAxisIndex: 'none'
+                        },
+                        dataView: { readOnly: false },
+                        magicType: { type: ['line', 'bar'] },
+                        restore: {},
+                        saveAsImage: {}
+                    }
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value}'
+                    }
+                },
+                series: [
+                    {
+                        name: 'HOME GUIDE DESIGN & CONTRACTS PTE. LTD',
+                        type: 'line',
+                        data: [128739, 87529, 67392, 130952, 90274, 89362, 59738,87478,81095,35879,73573,57935],
+                        markPoint: {
+                            data: [
+                                { type: 'max', name: 'MAX' },
+                                { type: 'min', name: 'MIN' }
+                            ]
+                        },
+                        markLine: {
+                            data: [
+                                { type: 'average', name: 'Avg' }
+                            ]
+                        }
+                    },
+                     {
+                         name: 'HG INTERIOR DESIGN PTE. LTD',
+                         type: 'line',
+                         data: [89567, 46187, 90690, 10905, 68939, 58036, 78290, 13094, 37036, 40368, 80261, 67035],
+                         markPoint: {
+                             data: [
+                                 { type: 'max', name: 'MAX' },
+                                 { type: 'min', name: 'MIN' }
+                             ]
+                         },
+                         markLine: {
+                             data: [
+                                 { type: 'average', name: 'Avg' }
+                             ]
+                         }
+                     }
+                ]
+            };
+             
+            // 使用刚指定的配置项和数据显示图表。
+            myChart.setOption(option, true);
+            window.onresize = myChart.resize;
+
+
+
+
+
+
+        }
+
+ 
+    </script>
+}

@@ -1,0 +1,13 @@
+D:\philip\MVC.Project\MVC.VO\bin\Debug\MVC.Models.dll
+D:\philip\MVC.Project\MVC.VO\bin\Debug\MVC.Models.pdb
+D:\philip\MVC.Project\MVC.VO\obj\Debug\MVC.Models.dll
+D:\philip\MVC.Project\MVC.VO\obj\Debug\MVC.Models.pdb
+D:\philip\MVC.Project\MVC.Models\bin\Debug\MVC.Models.dll
+D:\philip\MVC.Project\MVC.Models\bin\Debug\MVC.Models.pdb
+D:\philip\MVC.Project\MVC.Models\obj\Debug\MVC.Models.dll
+D:\philip\MVC.Project\MVC.Models\obj\Debug\MVC.Models.pdb
+D:\philip\MVC.Project\MVC.Models\obj\Debug\MVC.Models.csprojResolveAssemblyReference.cache
+D:\philip\ERP\MVC.Models\bin\Debug\MVC.Models.dll
+D:\philip\ERP\MVC.Models\bin\Debug\MVC.Models.pdb
+D:\philip\ERP\MVC.Models\obj\Debug\MVC.Models.dll
+D:\philip\ERP\MVC.Models\obj\Debug\MVC.Models.pdb

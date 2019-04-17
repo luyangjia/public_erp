@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{25A0EDB4-C4A4-4DCF-9368-541C6086CA8C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MVC.BLL</RootNamespace>
+    <AssemblyName>MVC.BLL</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Base\BaseBLL.cs" />
+    <Compile Include="Base\BaseInterface.cs" />
+    <Compile Include="Base\MyVisitor.cs" />
+    <Compile Include="DTO\T_AgreeDTO.cs" />
+    <Compile Include="DTO\T_AgreeListDTO.cs" />
+    <Compile Include="DTO\T_ClientDTO.cs" />
+    <Compile Include="DTO\T_CompanyDTO.cs" />
+    <Compile Include="DTO\T_CostDTO.cs" />
+    <Compile Include="DTO\T_DepartmentDTO.cs" />
+    <Compile Include="DTO\T_FixedAssetsDTO.cs" />
+    <Compile Include="DTO\T_FixedAssetsUseDTO.cs" />
+    <Compile Include="DTO\T_LeaveCarryOverDTO.cs" />
+    <Compile Include="DTO\T_LeaveApplyDTO.cs" />
+    <Compile Include="DTO\T_LeaveSettingDTO.cs" />
+    <Compile Include="DTO\T_LogDTO.cs" />
+    <Compile Include="DTO\T_ProjectDTO.cs" />
+    <Compile Include="DTO\T_ProjectFeeDTO.cs" />
+    <Compile Include="DTO\T_ProjectPlanDTO.cs" />
+    <Compile Include="DTO\T_ProjectUserDTO.cs" />
+    <Compile Include="DTO\T_RoleDTO.cs" />
+    <Compile Include="DTO\T_SupplierDTO.cs" />
+    <Compile Include="DTO\T_SysListDTO.cs" />
+    <Compile Include="DTO\T_TreeDTO.cs" />
+    <Compile Include="DTO\T_UserDTO.cs" />
+    <Compile Include="Interface\IT_AgreeBLL.cs" />
+    <Compile Include="Interface\IT_AgreeListBLL.cs" />
+    <Compile Include="Interface\IT_ClientBLL.cs" />
+    <Compile Include="Interface\IT_CompanyBLL.cs" />
+    <Compile Include="Interface\IT_CostBLL.cs" />
+    <Compile Include="Interface\IT_DepartmentBLL.cs" />
+    <Compile Include="Interface\IT_FixedAssetsBLL.cs" />
+    <Compile Include="Interface\IT_FixedAssetsUseBLL.cs" />
+    <Compile Include="Interface\IT_LeaveCarryOverBLL.cs" />
+    <Compile Include="Interface\IT_LeaveApplyBLL.cs" />
+    <Compile Include="Interface\IT_LeaveSettingBLL.cs" />
+    <Compile Include="Interface\IT_LogBLL.cs" />
+    <Compile Include="Interface\IT_ProjectBLL.cs" />
+    <Compile Include="Interface\IT_ProjectFeeBLL.cs" />
+    <Compile Include="Interface\IT_ProjectPlanBLL.cs" />
+    <Compile Include="Interface\IT_ProjectUserBLL.cs" />
+    <Compile Include="Interface\IT_RoleBLL.cs" />
+    <Compile Include="Interface\IT_SupplierBLL.cs" />
+    <Compile Include="Interface\IT_SysBLL.cs" />
+    <Compile Include="Interface\IT_SysListBLL.cs" />
+    <Compile Include="Interface\IT_TreeBLL.cs" />
+    <Compile Include="Interface\IT_UserBLL.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Public\MyPrincipal.cs" />
+    <Compile Include="T_AgreeBLL.cs" />
+    <Compile Include="T_AgreeListBLL.cs" />
+    <Compile Include="T_ClientBLL.cs" />
+    <Compile Include="T_CompanyBLL.cs" />
+    <Compile Include="T_CostBLL.cs" />
+    <Compile Include="T_DepartmentBLL.cs" />
+    <Compile Include="T_FixedAssetsBLL.cs" />
+    <Compile Include="T_FixedAssetsUseBLL.cs" />
+    <Compile Include="T_LeaveCarryOverBLL.cs" />
+    <Compile Include="T_LeaveApplyBLL.cs" />
+    <Compile Include="T_LeaveSettingBLL.cs" />
+    <Compile Include="T_LogBLL.cs" />
+    <Compile Include="T_ProjectBLL.cs" />
+    <Compile Include="T_ProjectFeeBLL.cs" />
+    <Compile Include="T_ProjectPlanBLL.cs" />
+    <Compile Include="T_ProjectUserBLL.cs" />
+    <Compile Include="T_RoleBLL.cs" />
+    <Compile Include="T_SupplierBLL.cs" />
+    <Compile Include="T_SysBLL.cs" />
+    <Compile Include="T_SysListBLL.cs" />
+    <Compile Include="T_TreeBLL.cs" />
+    <Compile Include="T_UserBLL.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MVC.DAL\MVC.DAL.csproj">
+      <Project>{5ad76e3f-378a-428d-be87-fa6b856cf6a1}</Project>
+      <Name>MVC.DAL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MVC.HELPER\MVC.Helper.csproj">
+      <Project>{e097818b-cd6c-449a-9691-6774c453e114}</Project>
+      <Name>MVC.Helper</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MVC.Models\MVC.Models.csproj">
+      <Project>{0fc4f0bf-a4e1-403f-b532-832de21a42e4}</Project>
+      <Name>MVC.Models</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

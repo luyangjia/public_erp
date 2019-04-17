@@ -1,0 +1,522 @@
+﻿
+@{
+    ViewBag.Title = "固定资产列表"; 
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<body>
+    <div class="easyui-layout" data-options="fit:true" id="tb">
+        <!-------------------------------搜索框----------------------------------->
+        <div data-options="region:'north'" style="padding: 1px; height: 100px">
+            <fieldset>
+                <legend>{{Condition}}</legend>
+
+                <form id="ffSearch" method="post">
+                    <div id="searchdiv">
+                        <table cellspacing="5" cellpadding="0">
+                            <tr> 
+                                <td> 
+                                    <label>{{Category}}：</label>
+                                </td>
+                                <td>
+                                    <select class="easyui-combobox" id="search_Category" name="search_Category" style="width: 180px;" data-options="url:'/Base/GetCombox?type=SysList&SysId=12&bind=id&first=null',
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+					            panelHeight:'250px'"></select>
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                                <td>
+                                    <label>{{Name}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-textbox" type="text" id="search_Name" name="search_Name" style="width: 150px;" maxlength="50" />
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                                <td>
+                                    <label>{{Status}}：</label>
+                                </td>
+                                <td>
+                                    <select class="easyui-combobox" id="search_Status" name="search_Status" style="width: 100%;" data-options="editable:false">
+                                        <option value="">　</option>
+                                        <option value="0">In Stock</option>
+                                        <option value="1">Receive</option>
+                                        <option value="2">Repair</option> 
+                                    </select>
+                                 </td>
+                                
+
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <label>{{DatePurchase}}：</label>
+                                </td>
+                                <td>
+                                    <input class="easyui-datebox" type="text" id="search_beginTime" name="search_beginTime" style="width: 120px;" maxlength="20" />--
+                                    <input class="easyui-datebox" type="text" id="search_endTime" name="search_endTime" style="width: 120px;" maxlength="20" />
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+                                <td>
+                                    &nbsp; &nbsp;
+                                </td>
+
+
+                                <td>
+                                    &nbsp;&nbsp;<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-search'" id="btnSearch" onclick="doSearch();">{{Search}}</a>
+                                </td>
+                            </tr>
+
+                             
+                        </table>
+                    </div>
+                </form>
+
+            </fieldset>
+
+        </div>
+        <!------------------------------------------------------------------------>
+        <div data-options="region:'center'">
+            <!-------------------------------详细信息展示表格----------------------------------->
+            <table id="dgrid" class="easyui-datagrid" fit="true" idfield="Id" title="" data-options="
+               url: '/Asset/AssetSearch',
+               rownumbers:true,
+               pagination:true,
+               pagenumber:1,
+               pageSize:pageSize,
+               pageList:pageList,
+               toolbar:'#toolbar',
+               remoteSort:true,
+               sortName:'Name',
+               sortOrder:'asc',
+               singleSelect:true,
+               nowrap:false,
+               loadMsg: loadMsg,
+               striped : true,
+               fitColumns:true,
+               method:'post',
+              onLoadSuccess:onLoadSuccess
+               ">
+                <thead>
+                    <tr>
+                        <th data-options="field:'Id',width:120,fixed:true,align:'center',formatter:Operationformatter">{{Operation}}</th> 
+                        <th data-options=" field:'AssetsNo',width:100,sortable:true">{{AssetsNo}}</th>
+                        <th data-options=" field:'Name',width:150,sortable:true">{{Name}}</th>
+                        <th data-options=" field:'Category',width:100,sortable:true">{{Category}}</th>
+                        <th data-options=" field:'DatePurchase',width:100,fixed:true,sortable:true,formatter:DateFormat">{{DatePurchase}}</th> 
+                        <th data-options=" field:'ValidYear',width:80,sortable:true">{{ValidYear}}</th>
+                        <th data-options=" field:'BuyPrice',width:80,sortable:true">{{BuyPrice}}</th>
+                        <th data-options=" field:'Address',width:250,sortable:true">{{Address}}</th>
+                        <th data-options=" field:'Status',width:80,fixed:true,sortable:true,formatter:Statusformater">{{Status}}</th>
+                    </tr>
+                </thead>
+            </table>
+            <!-------------------------------详细信息展示表格----------------------------------->
+        </div>
+    </div>
+    <!-------------------------------操作按钮----------------------------------->
+    <div id="toolbar" style="height:auto">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="AddData();">{{Add}}</a>
+    </div>
+    <div id="menu" class="easyui-menu" style="width: 50px; display: none;">
+        <!--放置一个隐藏的菜单Div-->
+        <div data-options="iconCls:'icon-add'" onclick="AddData();">{{Add}}</div>
+        <div data-options="iconCls:'icon-edit'" onclick="EditData();">{{Edit}}</div>
+        <div data-options="iconCls:'icon-delete'" onclick="DeleteData();">{{Delete}}</div>
+    </div>
+    @*添加弹窗*@
+    <div id="dlg_addDialog" class="easyui-dialog" title="" style="width:720px;height:370px;" data-options="iconCls:'icon-save',buttons: [{
+					text:$lang('Save'),
+					iconCls:'icon-accept',
+					handler:function(){
+						Dialog_Save();
+					}
+				},{
+					text:$lang('Close'),
+                    iconCls:'icon-cancel',
+					handler:function(){
+						 $('#dlg_addDialog').dialog('close')
+					}
+				}]" closed="true">
+        <form id="fmAdd" method="post" data-options="novalidate:true">
+            <div id="tabAdd" class="easyui-tabs">
+                <div v-bind:title="title" style="padding:10px">
+                    <table id="tblAdd" class="windowtable">
+                        <tr>
+                            <td class="firstTd" style="width: 130px;"><label for="com_Company">{{Company}}：</label></td>
+                            <td class="nthTd" style="width: 230px;">
+                                <select class=" easyui-combobox" id="com_Company" name="com_Company" style="width: 100%;" data-options="required:true,url:'/Base/GetCombox?type=Company',
+					            method:'get',
+					            valueField:'id',
+					            textField:'text',
+					            panelHeight:'auto'">
+                                </select>
+                            </td>
+                            <td class="firstTd" style="width: 130px;"><label>{{AssetsNo}}：</label></td>
+                            <td class="nthTd" style="width: 230px;"><input class="easyui-textbox" type="text" id="txt_AssetsNo" name="txt_AssetsNo" data-options="validType:'length[0,50]' " style="width:100%;" /></td>
+                         </tr>
+                        <tr>
+                            <td class="firstTd" style="width: 130px;"><label>{{Name}}：</label></td>
+                            <td class="nthTd" style="width: 230px;"><input class="easyui-textbox" type="text" id="txt_Name" name="txt_Name" data-options="required:true,validType:'length[1,50]' " style="width:100%;" /></td>
+                            <td class="firstTd" style="width: 130px;"><label>{{Category}}：</label></td>
+                            <td class="nthTd" style="width: 230px;">
+                                <select class="easyui-combobox" id="com_Category" name="com_Category" style="width: 100%;" data-options="required:true,url:'/Base/GetCombox?type=SysList&SysId=12&bind=text',
+					            method:'get',
+					            valueField:'text',
+					            textField:'text',
+					            panelHeight:'250px'"></select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label>{{TypeSpecification}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_TypeSpecification" name="txt_TypeSpecification" data-options="validType:'length[0,300]' " style="width:100%;" /></td>
+                            <td class="firstTd"><label>{{Manufacturers}}：</label></td>
+                            <td class="nthTd"><input class="easyui-textbox" id="txt_Manufacturers" name="txt_Manufacturers" data-options="validType:'length[0,300]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label>{{DateProduction}}：</label></td>
+                            <td class="nthTd"><input class="easyui-datebox" id="txt_DateProduction" name="txt_DateProduction" data-options="validType:'length[0,10]' " style="width:100%;" /></td>
+                            <td class="firstTd"><label>{{DatePurchase}}：</label></td>
+                            <td class="nthTd"><input class="easyui-datebox" id="txt_DatePurchase" name="txt_DatePurchase" data-options="validType:'length[0,10]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label>{{ValidYear}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberspinner" id="txt_ValidYear" name="txt_ValidYear" value="5" data-options="increment:1,max:1200,min:1 " style="width:100%;" /></td>
+                            <td class="firstTd"><label>{{BuyPrice}}：</label></td>
+                            <td class="nthTd"><input class="easyui-numberbox" id="txt_BuyPrice" name="txt_BuyPrice" data-options="precision:2,groupSeparator:',',validType:'length[0,10]' " style="width:100%;" /></td>
+                        </tr>
+                        <tr>
+                            <td class="firstTd"><label>{{Address}}：</label></td> 
+                            <td class="nthTd" colspan="3"><input class="easyui-textbox" id="txt_Address" name="txt_Address" data-options="validType:'length[0,2500]' " style="width:100%;" /></td>
+                        </tr> 
+                        <tr> 
+                            <td class="firstTd"><label>{{Status}}：</label></td>
+                            <td class="nthTd">
+                                <select class="easyui-combobox" id="com_Status" name="com_Status" style="width: 100%;" data-options="required:true,editable:false">
+                                    <option value="0">In Stock</option>
+                                    <option value="1">Receive</option>
+                                    <option value="2">Repair</option>
+                                </select>
+                            </td>
+                            <td class="firstTd"><label>{{CreateNum}}：</label></td>
+                            <td class="nthTd">
+                                <input class="easyui-numberspinner" id="txt_CreateNum" name="txt_CreateNum" value="1" data-options="increment:1,max:100,min:1" style="width:230px;" />
+                            </td>
+                          </tr>
+                    </table> 
+                </div>
+            </div>
+        </form>
+    </div>
+    @*添加人员弹窗*@ @*添加工作计划弹窗*@ @*添加项目协议*@
+    <div id="dlg_addDialog2" class="easyui-dialog" title="" style="width:720px;height:370px;" closed="true">
+    </div>
+</body>
+
+@section body_after{
+    @*vm script*@
+    <script>
+        //所有VM多在这里
+        //grid表头
+        var vm_gridhead = new Vue({
+            el: '#tb',
+            data: {
+                Condition: $lang("Search Condition"),
+                Search: $lang("Search"), 
+                Operation: $setLang("Operation", "操作"),
+                Company: $setLang("Company", "所属公司"),
+                AssetsNo: $setLang("Assets No", "资产编号"),
+                Name: $setLang("Assets Name", "资产名称"),
+                Category: $setLang("Category", "分类"),
+                TypeSpecification: $setLang("Type Specification", "型号规格"),
+                Manufacturers: $setLang("Manufacturers", "生产厂家"),
+                DateProduction: $setLang("Date Of Production", "生产日期"),
+                DatePurchase: $setLang("Date Of Purchase", "购置日期"),
+                ValidYear: $setLang("Valid Year", "使用年限"),
+                BuyPrice: $setLang("Buy Price", "购买价格"),
+                Address: $setLang("Address", "放置地址"),
+                Status: $setLang("Status", "状态"),
+            }
+        })
+        //toolbar按钮
+        var vm_toolbar = new Vue({
+            el: '#toolbar',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //menu菜单
+        var vm_menu = new Vue({
+            el: '#menu',
+            data: {
+                Add: $lang("Add"),
+                Edit: $lang("Edit"),
+                Delete: $lang("Delete"),
+            }
+        })
+        //增加修改模态框
+        var vm_dialog = new Vue({
+            el: '#dlg_addDialog',
+            data: {
+                title: $lang("Basic Information"), 
+                Company: $setLang("Company", "所属公司"),
+                AssetsNo: $setLang("Assets No", "资产编号"),
+                Name: $setLang("Assets Name", "资产名称"),
+                Category: $setLang("Category", "分类"),
+                TypeSpecification: $setLang("Type Specification", "型号规格"),
+                Manufacturers: $setLang("Manufacturers", "生产厂家"),
+                DateProduction: $setLang("Date Of Production", "生产日期"),
+                DatePurchase: $setLang("Date Of Purchase", "购置日期"),
+                ValidYear: $setLang("Valid Year", "使用年限"),
+                BuyPrice: $setLang("Buy Price", "购买价格"),
+                Address: $setLang("Address", "放置地址"),
+                CreateNum: $setLang("Create Num", "生成数量"),
+                Status: $setLang("Status", "状态"),
+            }
+        })
+    </script>
+    <script type="text/javascript">
+        var TbId = 0;
+        var width = 790; //窗框宽度
+        var height = 360; //窗框高度
+        var tops = 1;
+        var left = 1;
+        var type = "Add"; //区分修改还是新增，修改：Edit
+        var url = "/Asset/AssetAction";
+        //新增相关****************************
+        function AddData() {
+            $('#dlg_addDialog').dialog({
+                title: $lang('Add'),
+                width: width,
+                height: height,
+                top: tops,
+                left: left,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                modal: true
+
+            });
+            type = "Add";
+            TbId = 0;
+            $('#fmAdd').form('clear'); //清除表单,所有的
+            //$('#fmAdd').form('reset'); //清除表单
+            //$("#com_Sex").combobox('select', 'M');
+            //$('#com_Enable').combobox('select', 'true');
+            //$("#com_Marital").combobox('select', 'Single');
+            //$("#txt_LoginId").textbox({ 'disabled': false });
+            $("#txt_ValidYear").textbox({ 'value': '5' });
+            $("#txt_CreateNum").textbox({ 'value': '1' });
+           
+
+        }
+        //更新数据按钮
+        function Dialog_Save() {
+            $('#fmAdd').form('submit',
+                {
+                    onSubmit: function () {
+                        var b = $(this).form('enableValidation').form('validate');
+                        if (b) {
+
+                            //var companyGroup = $("#com_Company").combobox('getValue');
+                            //var arry = companyGroup.split("-");
+                            //创建传递的参数
+                            var postdata = {
+                                Action: type,
+                                Id: TbId,
+                                CompanyId:$("#com_Company").combobox('getValue'),
+                                AssetsNo: $("#txt_AssetsNo").val(),
+                                Name: $("#txt_Name").val(),
+                                Category: $("#com_Category").combobox('getValue'), 
+                                TypeSpecification: $("#txt_TypeSpecification").val(),
+                                Manufacturers: $("#txt_Manufacturers").val(),
+                                DateProduction: $("#txt_DateProduction").val(), 
+                                DatePurchase: $("#txt_DatePurchase").val(), 
+                                ValidYear: $("#txt_ValidYear").val(),
+                                BuyPrice: $("#txt_BuyPrice").val(),
+                                NowPrice: $("#txt_BuyPrice").val(),
+                                Address: $("#txt_Address").val(),
+                                CreateNum: $("#txt_CreateNum").val(),
+                                Status: $("#com_Status").combobox('getValue'),
+
+                            };
+                            //console.log(postdata);
+                            //发送异步请求到后台保存用户数据
+                            $.post(url,
+                                postdata,
+                                function (data, status) {
+                                    if (status == "success" && data === "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $('#dlg_addDialog').dialog('close');
+                                        $("#dgrid").datagrid("reload");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+
+
+                        } else {
+                            msgShow($lang('The System Prompt'), $lang('Validation Failure'), 'warning');
+                        }
+                    }
+                });
+        }
+        //************************************
+        //修改相关****************************
+        function EditData(id, rowObject) {
+            TbId = id;
+            type = "Edit"; 
+            $("#txt_CreateNum").textbox({ 'disabled': true }); 
+
+                $('#fmAdd').form('load', {
+                    com_Company: rowObject.CompanyId,
+                    txt_AssetsNo: rowObject.AssetsNo,
+                    txt_Name: rowObject.Name,
+                    com_Category: rowObject.Category,
+                    txt_TypeSpecification: rowObject.TypeSpecification,
+                    txt_Manufacturers: rowObject.Manufacturers,
+                    txt_DateProduction: jsonDateFormat(rowObject.DateProduction),
+                    txt_DatePurchase: jsonDateFormat(rowObject.DatePurchase),
+                    txt_ValidYear: rowObject.ValidYear,
+                    txt_BuyPrice: rowObject.BuyPrice, 
+                    txt_Address: rowObject.Address, 
+                    com_Status: rowObject.Status,
+                });
+                
+
+                $('#dlg_addDialog').dialog({
+                    title: $lang('Edit'),
+                    width: width,
+                    height: height,
+                    top: tops,
+                    left: left,
+                    closed: false,
+                    draggable: true,
+                    resizable: true,
+                    maximizable: true,
+                    collapsible: true,
+                    cache: false,
+                    modal: true
+                });
+
+        }
+        //************************************
+        //删除相关****************************
+        function DeleteData(id, rowObject) {
+            TbId = id;
+            type = "Delete";
+                //发送异步请求删除数据
+                $.messager.confirm($lang('The System Prompt'), $lang('Are You Sure Delete Selected Data ?'),
+                    function (DeleteSelect) {
+                        if (DeleteSelect) {
+                            $.post(url,
+                                { Action: "Delete", Id: id },
+                                function (data, status) {
+                                    consolelog(status);
+                                    if (status == "success" && data == "OK") {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Successful'), 'info');
+                                        $("#dgrid").datagrid("reload");
+                                        $("#dgrid").datagrid("clearSelections");
+                                    } else {
+                                        msgShow($lang('The System Prompt'), $lang('The Operation Failure'), 'error');
+                                    }
+                                });
+                        }
+                    });
+
+
+        }
+        //************************************
+        //查询相关****************************
+        function doSearch() {
+            $('#dgrid').datagrid('load', {
+                Name: $('#search_Name').val(), 
+                Category: $('#search_Category').combobox('getText'),
+                BeginTime: $('#search_beginTime').val(),
+                EndTime: $('#search_endTime').val(),
+               Status: $('#search_Status').combobox('getValue'),
+                 
+            });
+        } 
+        function Statusformater(value, rowObject, index) {
+            var html = "";
+            if (value == 0)
+                html = "<font color=#0000CC >In Stock</font>";
+            if (value == 1)
+                html = "<font color=#FF0000 >Use</font>"; 
+            if (value == 2)
+                html = "<font color=#888888 >Repair</font>";
+            if (value == 3)
+                html = "<font color=#888888 >Scrap</font>";
+            if (value == 4)
+                html = "<font color=#888888 >Sell</font>";
+
+            return html;
+        } 
+        function Operationformatter(value, rowObject, index) {
+            var html = "";
+            var edit = "editIcon" + index;
+            var edit_disabled = "edit_disabledIcon" + index;
+            var del = "delIcon" + index;
+            var del_disabled = "del_disabledIcon" + index;
+            html = html + "<a href=\"javascript:void(0)\" class=\"pencilIcon\" title='" + $setLang("Record", "记录") + "' onclick='RecordData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' ></a>";
+            html = html + "┆";
+            html = html + "<a href=\"javascript:void(0)\" class=\"editIcon\" title='" + $setLang("Edit", "修改") + "' onclick='EditData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' ></a>";
+            html = html + "┆";
+            html = html + "<a href=\"javascript:void(0)\"  class=\"deleteIcon\"  title='" + $setLang("Delete", "删除") + "' onclick='DeleteData(\"" + value + "\"," + JSON.stringify(rowObject) + ")' ></a>";
+            return html;
+
+        }
+        //************************************ 
+    </script>
+    <script>
+        function RecordData(id, rowObject)
+        {
+            $('#dlg_addDialog2').dialog({
+                title: $setLang("Record", "记录") + "   【" + rowObject.Name + "】",
+                width: 620,
+                height: 420,
+                top: 1,
+                left: 1,
+                closed: false,
+                draggable: true,
+                resizable: true,
+                maximizable: true,
+                collapsible: true,
+                cache: false,
+                fit: true,
+                href: '/Asset/AssetRecord?assetId=' + id,
+                modal: true
+            });
+        }
+    </script>
+}
+  
+ 
+
+

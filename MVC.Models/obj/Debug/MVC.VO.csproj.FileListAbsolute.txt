@@ -1,0 +1,5 @@
+D:\philip\MVC.Project\MVC.VO\bin\Debug\MVC.VO.dll
+D:\philip\MVC.Project\MVC.VO\bin\Debug\MVC.VO.pdb
+D:\philip\MVC.Project\MVC.VO\obj\Debug\MVC.VO.dll
+D:\philip\MVC.Project\MVC.VO\obj\Debug\MVC.VO.pdb
+D:\philip\MVC.Project\MVC.VO\obj\Debug\MVC.VO.csprojResolveAssemblyReference.cache
